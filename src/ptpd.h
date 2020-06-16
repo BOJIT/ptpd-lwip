@@ -30,11 +30,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
-#include <stm32f4xx.h>
-#include <stm32f4x7_eth.h>
 #include <limits.h>
-#include "main.h"
-#include "cmsis_os.h"
 #include "lwip/opt.h"
 #include "lwip/api.h"
 #include "lwip/inet.h"
@@ -43,7 +39,6 @@
 #include "lwip/igmp.h"
 #include "lwip/arch.h"
 #include "lwip/timers.h"
-#include "ethernetif.h"
 
 #include "constants.h"
 #include "dep/constants_dep.h"
@@ -94,7 +89,7 @@ int32_t floorLog2(uint32_t);
 /**
  * \brief return maximum of two numbers
  */
-static __INLINE int32_t max(int32_t a, int32_t b)
+static inline int32_t max(int32_t a, int32_t b)
 {
 	return a > b ? a : b;
 }
@@ -102,7 +97,7 @@ static __INLINE int32_t max(int32_t a, int32_t b)
 /**
  * \brief return minimum of two numbers
  */
-static __INLINE int32_t min(int32_t a, int32_t b)
+static inline int32_t min(int32_t a, int32_t b)
 {
 	return a > b ? b : a;
 }

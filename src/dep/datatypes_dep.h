@@ -28,9 +28,9 @@ typedef unsigned char nibble_t;
 // 8-bit data without numerical representation
 typedef char octet_t; 
 
-// Struct used  to average the offset from master and the one way delay
+// Struct used to average the offset from master and the one way delay
 //
-// Exponencial smoothing
+// Exponential smoothing
 //
 // alpha = 1/2^s
 // y[1] = x[0]
@@ -45,7 +45,7 @@ typedef struct
 	int32_t n;
 } Filter;
 
-// Network  buffer queue
+// Network buffer queue
 typedef struct
 {
 	void      *pbuf[PBUF_QUEUE_SIZE];
@@ -54,7 +54,7 @@ typedef struct
 	sys_mutex_t mutex;
 } BufQueue;
 
-// Struct used  to store network datas
+// Struct used to store network datas
 typedef struct
 {
 	int32_t   multicastAddr;

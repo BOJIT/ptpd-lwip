@@ -6,9 +6,9 @@
 
 /**
  *\file
- * \brief Plateform-dependent constants definition
+ * \brief Platform-dependent constants definition
  *
- * This header defines all includes and constants which are plateform-dependent
+ * This header defines all includes and constants which are platform-dependent
  *
  */
 
