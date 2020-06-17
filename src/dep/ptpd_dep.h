@@ -113,7 +113,7 @@ int16_t msgPackManagement(const PtpClock*,  octet_t*, const MsgManagement*);
 int16_t msgPackManagementResponse(const PtpClock*,  octet_t*, MsgHeader*, const MsgManagement*);
 /** \}*/
 
-/** \name net.c (Linux API dependent)
+/** \name net.c (lwIP API dependent)
  * -Init network stuff, send and receive datas */
 /**\{*/
 
@@ -140,14 +140,14 @@ void updateOffset(PtpClock *, const TimeInternal*, const TimeInternal*, const Ti
 void updateClock(PtpClock*);
 /** \}*/
 
-/** \name startup.c (Linux API dependent)
+/** \name startup.c (lwIP API dependent)
  * -Handle with runtime options */
 /**\{*/
 int16_t ptpdStartup(PtpClock*, RunTimeOpts*, ForeignMasterRecord*);
 void ptpdShutdown(PtpClock *);
 /** \}*/
 
-/** \name sys.c (Linux API dependent)
+/** \name sys.c (lwIP API dependent)
  * -Manage timing system API */
 /**\{*/
 void displayStats(const PtpClock *ptpClock);
@@ -159,7 +159,7 @@ bool  adjFreq(int32_t);
 uint32_t getRand(uint32_t);
 /** \}*/
 
-/** \name timer.c (Linux API dependent)
+/** \name timer.c (lwIP API dependent)
  * -Handle with timers */
 /**\{*/
 void initTimer(void);

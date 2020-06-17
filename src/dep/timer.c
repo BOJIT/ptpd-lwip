@@ -1,9 +1,11 @@
 /* timer.c */
 
+/// @todo use lwIP's built-in timeout engine
+
 #include "../ptpd.h"
 
 /* An array to hold the various system timer handles. */
-static sys_timer_t ptpdTimers[TIMER_ARRAY_SIZE];
+static struct lwip_cyclic_timer ptpdTimers[TIMER_ARRAY_SIZE];
 static bool ptpdTimersExpired[TIMER_ARRAY_SIZE];
  
 static void timerCallback(void const *arg)
@@ -56,7 +58,7 @@ void timerStart(int32_t index, uint32_t interval_ms)
 	// Set the timer duration and start the timer.
 	DBGV("timerStart: set timer %d to %d\n", index, interval_ms);
 	ptpdTimersExpired[index] = FALSE;
-  sys_timer_start(&ptpdTimers[index], interval_ms);
+	sys_timer_start(&ptpdTimers[index], interval_ms);
 }
 
 bool timerExpired(int32_t index)

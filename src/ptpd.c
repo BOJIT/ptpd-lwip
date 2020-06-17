@@ -1,5 +1,7 @@
 /* ptpd.c */
 
+/// @todo only expose initialisation functions + struct for netif interface
+
 #include "ptpd.h"
 
 static sys_mbox_t ptp_alert_queue;

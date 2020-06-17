@@ -38,7 +38,7 @@
 #include "lwip/udp.h"
 #include "lwip/igmp.h"
 #include "lwip/arch.h"
-#include "lwip/timers.h"
+#include "lwip/timeouts.h"
 
 #include "constants.h"
 #include "dep/constants_dep.h"
