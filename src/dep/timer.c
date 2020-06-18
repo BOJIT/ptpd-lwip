@@ -1,6 +1,6 @@
 /* timer.c */
 
-/// @todo use lwIP's built-in timeout engine
+/// @todo test practicality of lwIP's built-in timeout engine
 
 #include "../ptpd.h"
 
@@ -8,7 +8,7 @@
 static struct lwip_cyclic_timer ptpdTimers[TIMER_ARRAY_SIZE];
 static bool ptpdTimersExpired[TIMER_ARRAY_SIZE];
  
-static void timerCallback(void const *arg)
+static void timer_callback(void const *arg)
 {
 	int index = (int) arg;
 
@@ -32,9 +32,10 @@ void initTimer(void)
 	/* Create the various timers used in the system. */
   for (i = 0; i < TIMER_ARRAY_SIZE; i++)
   {
-		// Mark the timer as not expired.
+		// Mark the timer as not expired.	/// Mostly unused
 		// Initialize the timer.
-		sys_timer_new(&ptpdTimers[i], timerCallback, osTimerOnce, (void *) i);
+		ptpdTimers[i].handler = i;	// Bodge - sort out later
+		//sys_timer_new(&ptpdTimers[i], timerCallback, osTimerOnce, (void *) i);
 		ptpdTimersExpired[i] = FALSE;
 	}
 }
@@ -46,7 +47,7 @@ void timerStop(int32_t index)
 
 	// Cancel the timer and reset the expired flag.
 	DBGV("timerStop: stop timer %d\n", index);
-  sys_timer_stop(&ptpdTimers[index]);
+	sys_untimeout(timer_callback, (void * )&ptpdTimers[index]);
 	ptpdTimersExpired[index] = FALSE;
 }
 
@@ -58,7 +59,7 @@ void timerStart(int32_t index, uint32_t interval_ms)
 	// Set the timer duration and start the timer.
 	DBGV("timerStart: set timer %d to %d\n", index, interval_ms);
 	ptpdTimersExpired[index] = FALSE;
-	sys_timer_start(&ptpdTimers[index], interval_ms);
+	sys_timeout(interval_ms, timer_callback, (void * )&ptpdTimers[index]);
 }
 
 bool timerExpired(int32_t index)

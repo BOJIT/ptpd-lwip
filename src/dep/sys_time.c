@@ -1,5 +1,7 @@
 /* sys.c */
 
+/// @todo add ETH_Driver functions to port code, + pass to ptpd in struct
+
 #include "../ptpd.h"
 
 void displayStats(const PtpClock *ptpClock)
