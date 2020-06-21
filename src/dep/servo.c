@@ -304,7 +304,7 @@ void updateClock(PtpClock *ptpClock)
 
 		if (DEFAULT_PARENTS_STATS)
 		{
-			int a, scaledLogVariance;
+			int32_t a, scaledLogVariance;
 			ptpClock->parentDS.parentStats = TRUE;
 			ptpClock->parentDS.observedParentClockPhaseChangeRate = 1100 * ptpClock->observedDrift;
 

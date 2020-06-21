@@ -4,6 +4,8 @@
 
 #include "../ptpd.h"
 
+#include "port.h"		/// @todo remove later
+
 void displayStats(const PtpClock *ptpClock)
 {
 	const char *s;
@@ -40,10 +42,10 @@ void displayStats(const PtpClock *ptpClock)
 	switch (ptpClock->portDS.delayMechanism)
 	{
 		case E2E:
-			printf("path delay: %d nsec\n", ptpClock->currentDS.meanPathDelay.nanoseconds);
+			printf("path delay: %ld nsec\n", ptpClock->currentDS.meanPathDelay.nanoseconds);
 			break;
 		case P2P:
-			printf("path delay: %d nsec\n", ptpClock->portDS.peerMeanPathDelay.nanoseconds);
+			printf("path delay: %ld nsec\n", ptpClock->portDS.peerMeanPathDelay.nanoseconds);
 			break;
 		default:
 			printf("path delay: unknown\n");
@@ -54,11 +56,11 @@ void displayStats(const PtpClock *ptpClock)
 	/* Offset from master */
 	if (ptpClock->currentDS.offsetFromMaster.seconds)
 	{
-		printf("offset: %d sec\n", ptpClock->currentDS.offsetFromMaster.seconds);
+		printf("offset: %ld sec\n", ptpClock->currentDS.offsetFromMaster.seconds);
 	}
 	else
 	{
-		printf("offset: %d nsec\n", ptpClock->currentDS.offsetFromMaster.nanoseconds);
+		printf("offset: %ld nsec\n", ptpClock->currentDS.offsetFromMaster.nanoseconds);
 	}
 
 	/* Observed drift from master */
@@ -72,7 +74,7 @@ void displayStats(const PtpClock *ptpClock)
 void getTime(TimeInternal *time)
 {
 	struct ptptime_t timestamp;
-	ETH_PTPTime_GetTime(&timestamp);
+	portPTPGetTime(&timestamp);
 	time->seconds = timestamp.tv_sec;
 	time->nanoseconds = timestamp.tv_nsec;
 }
@@ -83,7 +85,7 @@ void setTime(const TimeInternal *time)
 
 	ts.tv_sec = time->seconds;
 	ts.tv_nsec = time->nanoseconds;
-	ETH_PTPTime_SetTime(&ts);
+	portPTPSetTime(&ts);
 	DBG("resetting system clock to %d sec %d nsec\n", time->seconds, time->nanoseconds);
 }
 
@@ -97,7 +99,7 @@ void updateTime(const TimeInternal *time)
 	timeoffset.tv_nsec = -time->nanoseconds;
 
 	/* Coarse update method */
-	ETH_PTPTime_UpdateOffset(&timeoffset);
+	portPTPUpdateCoarse(&timeoffset);
 	DBGV("updateTime: updated\n");
 }
 
@@ -116,7 +118,7 @@ bool  adjFreq(int32_t adj)
 		adj = -ADJ_FREQ_MAX;
 
 	/* Fine update method */
-	ETH_PTPTime_AdjFreq(adj);
+	portPTPUpdateFine(adj);
 
 	return TRUE;
 }

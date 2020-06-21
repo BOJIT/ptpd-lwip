@@ -132,7 +132,7 @@ static int32_t findIface(const octet_t *ifaceName, octet_t *uuid, NetPath *netPa
 
 /* Process an incoming message on the Event port. */
 static void netRecvEventCallback(void *arg, struct udp_pcb *pcb, struct pbuf *p,
-																 ip_addr_t *addr, u16_t port)
+																const ip_addr_t *addr, u16_t port)
 {
 	NetPath *netPath = (NetPath *) arg;
 
@@ -150,7 +150,7 @@ static void netRecvEventCallback(void *arg, struct udp_pcb *pcb, struct pbuf *p,
 
 /* Process an incoming message on the General port. */
 static void netRecvGeneralCallback(void *arg, struct udp_pcb *pcb, struct pbuf *p,
-																	 ip_addr_t  *addr, u16_t port)
+																	const ip_addr_t *addr, u16_t port)
 {
 	NetPath *netPath = (NetPath *) arg;
 
