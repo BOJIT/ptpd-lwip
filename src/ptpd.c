@@ -87,6 +87,6 @@ void ptpd_init(void)
 
     // Create the PTP daemon thread.
     sys_thread_new("PTPD", ptpd_thread, NULL,
-                    DEFAULT_THREAD_STACKSIZE * 2, FREERTOS_PRIORITIES-4);
+                    1024, FREERTOS_PRIORITIES-4);
 }
 
