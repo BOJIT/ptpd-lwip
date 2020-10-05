@@ -65,6 +65,9 @@ void fromInternalTime(const TimeInternal*, Timestamp*);
  */
 void toInternalTime(TimeInternal*, const Timestamp*);
 
+// DOXY TODO
+void normalizeTime(TimeInternal *r);
+
 /**
  * \brief Add two TimeInternal structure and normalize
  */

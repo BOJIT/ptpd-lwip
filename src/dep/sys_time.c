@@ -4,8 +4,6 @@
 
 #include "../ptpd.h"
 
-#include "port.h"		/// @todo remove later
-
 void displayStats(const PtpClock *ptpClock)
 {
 	const char *s;
