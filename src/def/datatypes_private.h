@@ -14,6 +14,13 @@
 #include "datatypes_public.h"
 #include "constants.h"
 
+#ifdef PTPD_DBG
+#define PTPD_ERR
+#define DBG(...)  { TimeInternal tmpTime; getTime(&tmpTime); printf("(D %d.%09d) ", tmpTime.seconds, tmpTime.nanoseconds); printf(__VA_ARGS__); }
+#else
+#define DBG(...)
+#endif
+
 /* -------------------------- Constructor Datatypes ------------------------- */
 
 /**
@@ -43,15 +50,6 @@ typedef struct {
     s32_t seconds;
     s32_t nanoseconds;
 } timeInternal_t;
-
-/**
- * \brief 5.3.3 The Timestamp type represents a positive time with respect to the epoch
- */
-
-typedef struct {
-    u48_t secondsField;
-    u32_t nanosecondsField;
-} timestamp_t;
 
 /**
  * \brief 5.3.4 The ClockIdentity type identifies a clock
