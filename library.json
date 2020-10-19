@@ -17,11 +17,6 @@
     "license": "MIT",
     "frameworks": "libopencm3",
     "platforms": "ststm32, gd32v, siliconlabsefm32, nxplpc, atmelsam",
-    "build": {
-        "srcFilter": [
-            "+<ptpd-lwip.c>"
-        ]
-    },
     "dependencies": {
         "bojit/PlatformIO-lwIP": "^1.0.0"
     }

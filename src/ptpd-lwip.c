@@ -12,15 +12,20 @@
 #include <lwip/sys.h>
 #include <lwip/api.h>
 
+#include "sys_time.h"
+
 /* Include FreeRTOS-Debug library headers */
 #include <FreeRTOS-Debug.h> // GET RID OF LATER!!!
 
 
 static sys_mbox_t ptp_alert_queue;
 
-void ptpdInit(ptpFunctions_t *ptpd_functions)
+void ptpdInit(ptpFunctions_t *functions, u8_t priority)
 {
     DEBUG_MESSAGE(DEBUG_TYPE_INFO, "PTPD INIT!!!");
+
+    /* Pass HAL function pointers to sys_time module */
+    initTimeFunctions(functions);
 
     /* // // Create the alert queue mailbox.
     // if(sys_mbox_new(&ptp_alert_queue, 8) != ERR_OK) {

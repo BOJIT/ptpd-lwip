@@ -2,6 +2,8 @@
 
 #include "bmc.h"
 
+#include <string.h>
+
 /* Convert EUI48 format to EUI64 */
 static void EUI48toEUI64(const octet_t * eui48, octet_t * eui64)
 {

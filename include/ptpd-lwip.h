@@ -14,6 +14,6 @@
 
 /*----------------------------- PUBLIC FUNCTIONS -----------------------------*/
 
-void ptpdInit(ptpFunctions_t *ptpd_functions);
+void ptpdInit(ptpFunctions_t *ptpd_functions, u8_t priority);
 
 #endif /* __PTPD_LWIP_H__ */

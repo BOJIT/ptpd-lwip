@@ -11,11 +11,6 @@
 
 #include <lwip/netif.h>
 
-/* Bit manipulation macros */
-#define getFlag(flagField, mask) (bool)(((flagField)  & (mask)) == (mask))
-#define setFlag(flagField, mask) (flagField) |= (mask)
-#define clearFlag(flagField, mask) (flagField) &= ~(mask)
-
 /* 5.3.4 ClockIdentity */
 #define CLOCK_IDENTITY_LENGTH 8
 
@@ -311,5 +306,53 @@ enum
     ARB_TIMESCALE,
     PTP_TIMESCALE
 };
+
+#ifdef PTPD_DBG
+#define PTPD_ERR
+#define DBG(...)  { TimeInternal tmpTime; getTime(&tmpTime); printf("(D %d.%09d) ", tmpTime.seconds, tmpTime.nanoseconds); printf(__VA_ARGS__); }
+#else
+#define DBG(...)
+#endif
+
+#ifdef PTPD_DBGVV
+#define PTPD_DBGV
+#define PTPD_DBG
+#define PTPD_ERR
+#define DBGVV(...) printf("(V) " __VA_ARGS__)
+#else
+#define DBGVV(...)
+#endif
+
+#ifdef PTPD_DBGV
+#define PTPD_DBG
+#define PTPD_ERR
+#define DBGV(...)  { TimeInternal tmpTime; getTime(&tmpTime); printf("(d %d.%09d) ", tmpTime.seconds, tmpTime.nanoseconds); printf(__VA_ARGS__); }
+#else
+#define DBGV(...)
+#endif
+
+#ifdef PTPD_ERR
+#define ERROR(...)  { TimeInternal tmpTime; getTime(&tmpTime); printf("(E %d.%09d) ", tmpTime.seconds, tmpTime.nanoseconds); printf(__VA_ARGS__); }
+/* #define ERROR(...)  { printf("(E) "); printf(__VA_ARGS__); } */
+#else
+#define ERROR(...)
+#endif
+
+/* Bit manipulation macros */
+#define getFlag(flagField, mask) (bool)(((flagField)  & (mask)) == (mask))
+#define setFlag(flagField, mask) (flagField) |= (mask)
+#define clearFlag(flagField, mask) (flagField) &= ~(mask)
+
+/* Endianness corrections */
+#if defined(PTPD_MSBF)
+#define shift8(x,y)   ( (x) << ((3-y)<<3) )
+#define shift16(x,y)  ( (x) << ((1-y)<<4) )
+#elif defined(PTPD_LSBF)
+#define shift8(x,y)   ( (x) << ((y)<<3) )
+#define shift16(x,y)  ( (x) << ((y)<<4) )
+#endif
+
+#define flip16(x) htons(x)
+#define flip32(x) htonl(x)
 
 #endif /* __PTPD_CONSTANTS_H__ */

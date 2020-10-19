@@ -8,6 +8,8 @@
 
 #include <stdbool.h>
 
+#include <lwip/arch.h>
+
 /* Initialise array of lwIP timers */
 void initTimer(void);
 

@@ -14,30 +14,6 @@
 #include "datatypes_public.h"
 #include "constants.h"
 
-#ifdef PTPD_DBG
-#define PTPD_ERR
-#define DBG(...)  { TimeInternal tmpTime; getTime(&tmpTime); printf("(D %d.%09d) ", tmpTime.seconds, tmpTime.nanoseconds); printf(__VA_ARGS__); }
-#else
-#define DBG(...)
-#endif
-
-#ifdef PTPD_DBGVV
-#define PTPD_DBGV
-#define PTPD_DBG
-#define PTPD_ERR
-#define DBGVV(...) printf("(V) " __VA_ARGS__)
-#else
-#define DBGVV(...)
-#endif
-
-#ifdef PTPD_DBGV
-#define PTPD_DBG
-#define PTPD_ERR
-#define DBGV(...)  { TimeInternal tmpTime; getTime(&tmpTime); printf("(d %d.%09d) ", tmpTime.seconds, tmpTime.nanoseconds); printf(__VA_ARGS__); }
-#else
-#define DBGV(...)
-#endif
-
 /* -------------------------- Constructor Datatypes ------------------------- */
 
 /**
@@ -482,7 +458,7 @@ typedef struct {
 
     bool messageActivity;
 
-    NetPath netPath; // TODO
+    //NetPath netPath; // TODO
 
     u8_t recommendedState;
 
@@ -497,8 +473,6 @@ typedef struct {
     u8_t  stats;
 
     runTimeOpts_t* rtOpts;
-
-    ptpFunctions_t functions;
 } ptpClock_t;
 
 #endif /* __PTPD_DATATYPES_PRIVATE_H__ */

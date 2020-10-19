@@ -38,7 +38,6 @@ typedef struct {
     void (*ptpSetTime)(const timestamp_t*);
     void (*ptpUpdateCoarse)(const timestamp_t*, s8_t);
     void (*ptpUpdateFine)(s32_t);
-    int ptp_priority;
 } ptpFunctions_t;
 
 #endif /* __DATATYPES_PUBLIC__ */
