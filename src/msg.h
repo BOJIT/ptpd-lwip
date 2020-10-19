@@ -1,12 +1,16 @@
 #ifndef __PTPD_MSG_H__
 #define __PTPD_MSG_H__
 
-#include "def/datatypes_private.h"
-
 /**
- *\file
- * \brief 5.3 Message Handler
+ * @file
+ * @brief ptpd-lwip 5.3 message handler
+ *
+ * @author @htmlonly &copy; @endhtmlonly 2020 James Bennion-Pedley
+ *
+ * @date 1 Oct 2020
  */
+
+#include "def/datatypes_private.h"
 
 /* Unpack header message */
 void msgUnpackHeader(const octet_t *buf, msgHeader_t *header);

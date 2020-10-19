@@ -1,15 +1,14 @@
+#ifndef __PTPD_ARITH_H__
+#define __PTPD_ARITH_H__
+
 /**
  * @file
- * @brief ptpd-lwip public interface
+ * @brief ptpd-lwip arithmetic functions
  *
  * @author @htmlonly &copy; @endhtmlonly 2020 James Bennion-Pedley
  *
  * @date 1 Oct 2020
  */
-
-#ifndef __PTPD_ARITH_H__
-#define __PTPD_ARITH_H__
-
 
 #include "def/datatypes_private.h"
 
@@ -18,6 +17,7 @@
  */
 void scaledNanosecondsToInternalTime(const s64_t *scaledNanoseconds,
                                                     timeInternal_t *internal);
+
 /**
  * \brief Convert TimeInternal into Timestamp structure (defined by the spec)
  */

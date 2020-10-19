@@ -11,6 +11,11 @@
 
 #include <lwip/netif.h>
 
+/* Bit manipulation macros */
+#define getFlag(flagField, mask) (bool)(((flagField)  & (mask)) == (mask))
+#define setFlag(flagField, mask) (flagField) |= (mask)
+#define clearFlag(flagField, mask) (flagField) &= ~(mask)
+
 /* 5.3.4 ClockIdentity */
 #define CLOCK_IDENTITY_LENGTH 8
 
@@ -20,7 +25,7 @@
 /* Implementation specific constants */
 #define DEFAULT_INBOUND_LATENCY         0       /* in nsec */
 #define DEFAULT_OUTBOUND_LATENCY        0       /* in nsec */
-#define DEFAULT_NO_RESET_CLOCK          FALSE
+#define DEFAULT_NO_RESET_CLOCK          false
 #define DEFAULT_DOMAIN_NUMBER           0
 #define DEFAULT_DELAY_MECHANISM         E2E
 #define DEFAULT_AP                      2
@@ -29,7 +34,7 @@
 #define DEFAULT_OFFSET_S                1 /* exponencial smoothing - 2^s */
 #define DEFAULT_ANNOUNCE_INTERVAL       1 /* 0 in 802.1AS */
 #define DEFAULT_UTC_OFFSET              34
-#define DEFAULT_UTC_VALID               FALSE
+#define DEFAULT_UTC_VALID               false
 #define DEFAULT_PDELAYREQ_INTERVAL      1 /* -4 in 802.1AS */
 #define DEFAULT_DELAYREQ_INTERVAL       3 /* from DEFAULT_SYNC_INTERVAL to DEFAULT_SYNC_INTERVAL + 5 */
 #define DEFAULT_SYNC_INTERVAL           0 /* -7 in 802.1AS */
@@ -45,11 +50,11 @@
 #define DEFAULT_PRIORITY2               248
 #define DEFAULT_CLOCK_VARIANCE          5000 /* To be determined in 802.1AS */
 #define DEFAULT_MAX_FOREIGN_RECORDS     5
-#define DEFAULT_PARENTS_STATS           FALSE
-#define DEFAULT_TWO_STEP_FLAG           TRUE /* Transmitting only SYNC message or SYNC and FOLLOW UP */
+#define DEFAULT_PARENTS_STATS           false
+#define DEFAULT_TWO_STEP_FLAG           true /* Transmitting only SYNC message or SYNC and FOLLOW UP */
 #define DEFAULT_TIME_SOURCE             INTERNAL_OSCILLATOR
-#define DEFAULT_TIME_TRACEABLE          FALSE /* time derived from atomic clock? */
-#define DEFAULT_FREQUENCY_TRACEABLE     FALSE /* frequency derived from frequency standard? */
+#define DEFAULT_TIME_TRACEABLE          false /* time derived from atomic clock? */
+#define DEFAULT_FREQUENCY_TRACEABLE     false /* frequency derived from frequency standard? */
 #define DEFAULT_TIMESCALE               ARB_TIMESCALE /* PTP_TIMESCALE or ARB_TIMESCALE */
 
 #define DEFAULT_CALIBRATED_OFFSET_NS    10000 /* offset from master < 10us -> calibrated */
@@ -59,9 +64,10 @@
 /* features, only change to refelect changes in implementation */
 #define NUMBER_PORTS      1
 #define VERSION_PTP       2
-#define BOUNDARY_CLOCK    FALSE
-#define SLAVE_ONLY        TRUE
-#define NO_ADJUST         FALSE
+#define BOUNDARY_CLOCK    false
+#define SLAVE_ONLY        true
+/// @todo check if master can be implemented easily?
+#define NO_ADJUST         false
 
 /** \name Packet length
  Minimal length values for each message.

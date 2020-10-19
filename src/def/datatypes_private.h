@@ -21,6 +21,23 @@
 #define DBG(...)
 #endif
 
+#ifdef PTPD_DBGVV
+#define PTPD_DBGV
+#define PTPD_DBG
+#define PTPD_ERR
+#define DBGVV(...) printf("(V) " __VA_ARGS__)
+#else
+#define DBGVV(...)
+#endif
+
+#ifdef PTPD_DBGV
+#define PTPD_DBG
+#define PTPD_ERR
+#define DBGV(...)  { TimeInternal tmpTime; getTime(&tmpTime); printf("(d %d.%09d) ", tmpTime.seconds, tmpTime.nanoseconds); printf(__VA_ARGS__); }
+#else
+#define DBGV(...)
+#endif
+
 /* -------------------------- Constructor Datatypes ------------------------- */
 
 /**
