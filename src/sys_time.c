@@ -114,8 +114,8 @@ void updateTime(const timeInternal_t *time)
         sign = 1;
     }
 
-    offset.secondsField.lsb = time->seconds;
-    offset.nanosecondsField = time->nanoseconds;
+    offset.secondsField.lsb = abs(time->seconds);
+    offset.nanosecondsField = abs(time->nanoseconds);
 
     /* Coarse update method */
     ptpFunctions.ptpUpdateCoarse(&offset, sign);
