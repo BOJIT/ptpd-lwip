@@ -28,3 +28,5 @@ Prerequisites:
 - relocate startup functions
 - write and test network functions with netconn API + NO FREERTOS DEPENDENCIES
 - check the validity of the lwip timers + check for memory allocation issues here!
+
+- management message handling doesn't appear to be implemented in AN3411. Look into this.
