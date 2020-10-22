@@ -10,6 +10,7 @@
  */
 
 #include <stdbool.h>
+#include <lwip/api.h>
 
 #include "datatypes_public.h"
 #include "constants.h"
@@ -392,6 +393,22 @@ typedef struct {
 } runTimeOpts_t;
 
 /**
+ * \struct NetPath
+ * \brief Network Interface Information
+ */
+
+typedef struct {
+    struct netconn *generalConn, *eventConn;
+    ip_addr_t multicastAddr, peerMulticastAddr, localAddr;
+
+    // struct udp_pcb    *eventPcb;
+    // struct udp_pcb    *generalPcb;
+
+    // BufQueue    eventQ;
+    // BufQueue    generalQ;
+} netPath_t;
+
+/**
  * \struct PtpClock
  * \brief Main program data structure
  */
@@ -471,6 +488,8 @@ typedef struct {
     s32_t  events;
 
     u8_t  stats;
+
+    netPath_t netPath;
 
     runTimeOpts_t* rtOpts;
 } ptpClock_t;

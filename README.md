@@ -24,7 +24,6 @@ Prerequisites:
   This adds timestamp fields to the basic lwIP pbuf structure.
 
 # TODO
-- transfer across protocol.c with header files
 - relocate startup functions
 - write and test network functions with netconn API + NO FREERTOS DEPENDENCIES
 - check the validity of the lwip timers + check for memory allocation issues here!

@@ -1,6 +1,7 @@
 /* timer.c */
 
 /// @todo test practicality of lwIP's built-in timeout engine
+/// THIS WHOLE SECTION SHOULD BE REPLACED WITH SEMAPHORES or Ticks
 
 #include "timer.h"
 
