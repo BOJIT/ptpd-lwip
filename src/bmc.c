@@ -186,6 +186,7 @@ void m1(ptpClock_t *ptpClock)
  */
 void p1(ptpClock_t *ptpClock)
 {
+    (void)(ptpClock);
     DBGV("bmc: p1\n");
 }
 

@@ -438,7 +438,7 @@ typedef struct {
     } msgTmp; /**< buffer for incomming message body */
 
     octet_t msgObuf[PACKET_SIZE]; /**< buffer for outgoing message */
-    octet_t msgIbuf[PACKET_SIZE]; /** <buffer for incomming message */
+    octet_t msgIbuf[PACKET_SIZE]; /** <buffer for incomming message - TO BE REMOVED AT SOME POINT */
     ssize_t msgIbufLength; /**< length of incomming message */
 
     timeInternal_t Tms; /**< Time Master -> Slave */
@@ -474,8 +474,6 @@ typedef struct {
     s32_t observedDrift;
 
     bool messageActivity;
-
-    //NetPath netPath; // TODO
 
     u8_t recommendedState;
 

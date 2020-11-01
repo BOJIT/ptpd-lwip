@@ -19,11 +19,10 @@
 /* Include FreeRTOS-Debug library headers */
 #include <FreeRTOS-Debug.h> // GET RID OF LATER!!!
 
-runTimeOpts_t rtOpts;
 ptpClock_t ptpClock;
+runTimeOpts_t rtOpts;
 foreignMasterRecord_t ptpForeignRecords[DEFAULT_MAX_FOREIGN_RECORDS];
 
-// static sys_mbox_t ptp_alert_queue;
 
 static void ptpd_thread(void *args __attribute((unused))) {
 
@@ -36,96 +35,62 @@ static void ptpd_thread(void *args __attribute((unused))) {
         }
     #endif
 
-    // DEBUG_MESSAGE(DEBUG_TYPE_INFO, "Joining IGMP group");
-    // ptpClock.netPath.generalConn = netconn_new(NETCONN_UDP);
-    // ptpClock.netPath.eventConn = netconn_new(NETCONN_UDP);
+    static struct netbuf *buf;
+    err_t err;
 
-    // if(ptpClock.netPath.generalConn == NULL) {
-    //     DEBUG_MESSAGE(DEBUG_TYPE_ERROR, "Netconn not allocated!");
-    //     netconn_delete(ptpClock.netPath.generalConn);
-    // }
+    DEBUG_MESSAGE(DEBUG_TYPE_INFO, "Joining IGMP group");
+    ptpClock.netPath.generalConn = netconn_new(NETCONN_UDP);
+    ptpClock.netPath.eventConn = netconn_new(NETCONN_UDP);
 
-    // err_t netstate = netconn_bind(ptpClock.netPath.generalConn, IP_ADDR_ANY, PTP_GENERAL_PORT);
-    // DEBUG_MESSAGE(DEBUG_TYPE_INFO, "bindstate: %d", netstate);
+    if(ptpClock.netPath.generalConn == NULL) {
+        DEBUG_MESSAGE(DEBUG_TYPE_ERROR, "Netconn not allocated!");
+        netconn_delete(ptpClock.netPath.generalConn);
+    }
 
-    // IP4_ADDR(&ptpClock.netPath.multicastAddr, 239, 0, 0, 0);
-    // IP4_ADDR(&ptpClock.netPath.localAddr, 192, 168, 42, 42);
-    // // ptpClock.netPath.multicastAddr.addr = htonl(DEFAULT_PTP_DOMAIN_ADDRESS);
-    // // ptpClock.netPath.peerMulticastAddr.addr = htonl(PEER_PTP_DOMAIN_ADDRESS);
-    // DEBUG_MESSAGE(DEBUG_TYPE_INFO, "addr: %lu", ptpClock.netPath.multicastAddr.addr);
-    // // ptpClock.netPath.localAddr.addr = netif_default->ip_addr.addr;
-    // // err_t state = netconn_join_leave_group(ptpClock.netPath.generalConn, &ptpClock.netPath.multicastAddr,
-    // //                                                 &ptpClock.netPath.localAddr, NETCONN_JOIN);
-    // err_t state = netconn_join_leave_group_netif(ptpClock.netPath.generalConn, &ptpClock.netPath.multicastAddr,
-    //                                                 1, NETCONN_JOIN);
-    // DEBUG_MESSAGE(DEBUG_TYPE_INFO, "localaddr: %lu", ptpClock.netPath.localAddr.addr);
-    // DEBUG_MESSAGE(DEBUG_TYPE_INFO, "igmpstate: %d", state);
-    // // netconn_join_leave_group(ptpClock.netPath.generalConn, &ptpClock.netPath.peerMulticastAddr,
-    // //                                                 &ptpClock.netPath.localAddr, NETCONN_JOIN);
-    // // netconn_join_leave_group(ptpClock.netPath.eventConn, &ptpClock.netPath.multicastAddr,
-    // //                                                 &ptpClock.netPath.localAddr, NETCONN_JOIN);
-    // // netconn_join_leave_group(ptpClock.netPath.eventConn, &ptpClock.netPath.peerMulticastAddr,
-    // //                                                 &ptpClock.netPath.localAddr, NETCONN_JOIN);
+    netconn_bind(ptpClock.netPath.generalConn, IP_ADDR_ANY, PTP_GENERAL_PORT);
 
-    // struct netbuf *buf;
-    // err_t err;
+    IP4_ADDR(&ptpClock.netPath.multicastAddr, 224, 0, 1, 129);
+    IP4_ADDR(&ptpClock.netPath.localAddr, 192, 168, 42, 42);
+    // ptpClock.netPath.multicastAddr.addr = htonl(DEFAULT_PTP_DOMAIN_ADDRESS);
+    // ptpClock.netPath.peerMulticastAddr.addr = htonl(PEER_PTP_DOMAIN_ADDRESS);
 
-    // DEBUG_MESSAGE(DEBUG_TYPE_WARNING, "got here");
+    // netconn_join_leave_group(ptpClock.netPath.generalConn, &ptpClock.netPath.peerMulticastAddr,
+    //                                                 &ptpClock.netPath.localAddr, NETCONN_JOIN);
+    // netconn_join_leave_group(ptpClock.netPath.eventConn, &ptpClock.netPath.multicastAddr,
+    //                                                 &ptpClock.netPath.localAddr, NETCONN_JOIN);
+    // netconn_join_leave_group(ptpClock.netPath.eventConn, &ptpClock.netPath.peerMulticastAddr,
+    //                                                 &ptpClock.netPath.localAddr, NETCONN_JOIN);
 
-    // for(;;) {
-    //     while((err = netconn_recv(ptpClock.netPath.generalConn, &buf)) == ERR_OK) {
-    //         DEBUG_MESSAGE(DEBUG_TYPE_INFO, "UDP Arrived!");
-    //     }
-    // }
+    // ptpClock.netPath.localAddr.addr = netif_default->ip_addr.addr;
+    // err_t state = netconn_join_leave_group(ptpClock.netPath.generalConn, &ptpClock.netPath.multicastAddr,
+    //                                                 &ptpClock.netPath.localAddr, NETCONN_JOIN);
 
-  static struct netconn *conn;
+    err = netconn_join_leave_group(ptpClock.netPath.generalConn, &ptpClock.netPath.multicastAddr,
+                                                    &netif_default->ip_addr, NETCONN_JOIN);
 
-  static struct netbuf *buf;
+    err = netconn_join_leave_group(ptpClock.netPath.generalConn, &ptpClock.netPath.peerMulticastAddr,
+                                                    &netif_default->ip_addr, NETCONN_JOIN);
 
-  ip_addr_t MulticastIPaddr, OwnAddr;
-
-  err_t err, recv_err;
-
-//   netif_default->flags = NETIF_FLAG_UP | NETIF_FLAG_BROADCAST | NETIF_FLAG_ETHARP | NETIF_FLAG_LINK_UP | NETIF_FLAG_IGMP;
-
-  IP4_ADDR(&MulticastIPaddr, 239, 0, 0, 0);
-
-  IP4_ADDR(&OwnAddr, 192, 168, 42, 42);
-
-  conn = netconn_new(NETCONN_UDP);
-
-  if (conn!= NULL)
-
-  {
-
-    netconn_bind(conn, IP_ADDR_ANY, 60004);  // returns ERR_OK
-
-    err = netconn_join_leave_group(conn, &MulticastIPaddr, &OwnAddr, NETCONN_JOIN); // returns ERR_OK
-    DEBUG_MESSAGE(DEBUG_TYPE_INFO, "Error: %d", err);
-
-    if (err == ERR_OK) {
-        DEBUG_MESSAGE(DEBUG_TYPE_INFO, "RECV");
-      while (1)
-      {
-        recv_err = netconn_recv(conn, &buf);
-
-        if (recv_err == ERR_OK) {
-            // process the packet
+    if(err == ERR_OK) {
+        while(1) {
+            if((err = netconn_recv(ptpClock.netPath.generalConn, &buf)) == ERR_OK) {
+                DEBUG_MESSAGE(DEBUG_TYPE_INFO, "UDP Arrived!");
+                netbuf_delete(buf);
+            }
+            else {
+                DEBUG_MESSAGE(DEBUG_TYPE_INFO, "Here");
+            }
         }
-      }
     }
-
     else {
-        DEBUG_MESSAGE(DEBUG_TYPE_INFO, "Not RECV");
-      netconn_delete(conn);
-    }
-  }
-
-    while(1){
-        vTaskDelay(10000);
+        DEBUG_MESSAGE(DEBUG_TYPE_ERROR, "Failed to join multicast group!");
+        netconn_delete(ptpClock.netPath.generalConn);
+        vTaskDelete(NULL);
     }
 }
 
+/// @todo remember that the PTP timestamps need to be written into the pbuf when
+// descriptors are processed!
 
 void ptpdInit(ptpFunctions_t *functions, u8_t priority)
 {
