@@ -10,7 +10,8 @@
  */
 
 #include <stdbool.h>
-#include <lwip/api.h>
+#include <lwip/udp.h>
+#include <lwip/sys.h>
 
 #include "datatypes_public.h"
 #include "constants.h"
@@ -393,19 +394,31 @@ typedef struct {
 } runTimeOpts_t;
 
 /**
+ * \struct BufQueue
+ * \brief Network Buffer Queue
+ */
+
+typedef struct {
+    void *pbuf[PBUF_QUEUE_SIZE];
+    int16_t head;
+    int16_t tail;
+    sys_mutex_t mutex;
+} bufQueue_t;
+
+/**
  * \struct NetPath
  * \brief Network Interface Information
  */
 
 typedef struct {
-    struct netconn *generalConn, *eventConn;
-    ip_addr_t multicastAddr, peerMulticastAddr, localAddr;
+    ip_addr_t multicastAddr;
+    ip_addr_t peerMulticastAddr;
 
-    // struct udp_pcb    *eventPcb;
-    // struct udp_pcb    *generalPcb;
+    struct udp_pcb *eventPcb;
+    struct udp_pcb *generalPcb;
 
-    // BufQueue    eventQ;
-    // BufQueue    generalQ;
+    bufQueue_t eventQ;
+    bufQueue_t generalQ;
 } netPath_t;
 
 /**
