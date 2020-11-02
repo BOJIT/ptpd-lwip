@@ -64,8 +64,7 @@ void initClock(ptpClock_t *ptpClock)
     if (!ptpClock->servo.noAdjust)
         adjFreq(0);
 
-    /// @todo new netconn interface
-    //netEmptyEventQ(&ptpClock->netPath);
+    netEmptyEventQ(&ptpClock->netPath);
 }
 
 /* Return order of a number */

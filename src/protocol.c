@@ -272,14 +272,13 @@ static bool doInit(ptpClock_t *ptpClock)
     DBG("manufacturerIdentity: %s\n", MANUFACTURER_ID);
 
     /* initialize networking */
-    /// @todo networking code!
-    // netShutdown(&ptpClock->netPath);
+    netShutdown(&ptpClock->netPath);
 
-    // if (!netInit(&ptpClock->netPath, ptpClock)) {
-    // 	ERROR("doInit: failed to initialize network\n");
-    // 	return false;
-    // }
-    /*else*/ {
+    if (!netInit(&ptpClock->netPath, ptpClock)) {
+        ERROR("doInit: failed to initialize network\n");
+        return false;
+    }
+    else {
         /* initialize other stuff */
         initData(ptpClock);
         initTimer();

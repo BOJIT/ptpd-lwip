@@ -10,6 +10,7 @@
  */
 
 #include <stdbool.h>
+#include <lwip/pbuf.h>
 #include <lwip/udp.h>
 #include <lwip/sys.h>
 
@@ -394,16 +395,29 @@ typedef struct {
 } runTimeOpts_t;
 
 /**
- * \struct BufQueue
- * \brief Network Buffer Queue
+ * \struct Packet
+ * \brief Stores pbuf pointer and associated
+ * data that is required by the sending callback.
  */
 
 typedef struct {
-    void *pbuf[PBUF_QUEUE_SIZE];
-    int16_t head;
-    int16_t tail;
-    sys_mutex_t mutex;
-} bufQueue_t;
+    struct pbuf *pbuf;
+    ip_addr_t destAddr;
+} packet_t;
+
+/**
+ * \struct PacketHandler
+ * \brief Stores input and output queues associated with
+ * a protocol control block.
+ */
+
+typedef struct {
+    struct udp_pcb *pcb;
+    packet_t inboxBuf[PBUF_QUEUE_SIZE];
+    sys_mbox_t inbox;
+    packet_t outboxBuf[PBUF_QUEUE_SIZE];
+    sys_mbox_t outbox;
+} packetHandler_t;
 
 /**
  * \struct NetPath
@@ -414,11 +428,8 @@ typedef struct {
     ip_addr_t multicastAddr;
     ip_addr_t peerMulticastAddr;
 
-    struct udp_pcb *eventPcb;
-    struct udp_pcb *generalPcb;
-
-    bufQueue_t eventQ;
-    bufQueue_t generalQ;
+    packetHandler_t eventHandler;
+    packetHandler_t generalHandler;
 } netPath_t;
 
 /**

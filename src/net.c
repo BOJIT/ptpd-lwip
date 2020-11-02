@@ -4,51 +4,73 @@
 
 /// @todo Horrendously inefficient PBUF copying about 3 times! Fix soon.
 
-/* Initialize network queue. */
-static void netQInit(bufQueue_t *queue)
+/* Process an incoming message */
+static void netRecvCallback(void *arg, struct udp_pcb *pcb, struct pbuf *p,
+                                                const ip_addr_t *addr, u16_t port)
 {
-    queue->head = 0;
-    queue->tail = 0;
-    sys_mutex_new(&queue->mutex);
-}
+    packetHandler_t *handler = (packetHandler_t *)arg;
 
-/* Put data to the network queue. */
-static bool netQPut(bufQueue_t *queue, void *pbuf)
-{
-    bool retval = false;
+    static int bufIdx = 0;
 
-    sys_mutex_lock(&queue->mutex);
+    /* Back up existing packet and overwrite with new data */
+    packet_t packetTmp = handler->inboxBuf[bufIdx];
+    handler->inboxBuf[bufIdx].pbuf = p;
+    handler->inboxBuf[bufIdx].destAddr.addr = addr->addr;
 
-    // Is there room on the queue for the buffer?
-    if (((queue->head + 1) & PBUF_QUEUE_MASK) != queue->tail) {
-        // Place the buffer in the queue.
-        queue->head = (queue->head + 1) & PBUF_QUEUE_MASK;
-        queue->pbuf[queue->head] = pbuf;
-        retval = true;
+    if(sys_mbox_trypost(&handler->inbox, &handler->inboxBuf[bufIdx]) != ERR_OK) {
+        ERROR("netRecvEventCallback: queue full\n");
+        pbuf_free(p);
+        handler->inboxBuf[bufIdx] = packetTmp;
+        return;
     }
 
-    sys_mutex_unlock(&queue->mutex);
-
-    return retval;
-}
-
-/* Get data from the network queue. */
-static void *netQGet(bufQueue_t *queue)
-{
-    void *pbuf = NULL;
-
-    sys_mutex_lock(&queue->mutex);
-
-    // Is there a buffer on the queue?
-    if (queue->tail != queue->head) {
-        // Get the buffer from the queue.
-        queue->tail = (queue->tail + 1) & PBUF_QUEUE_MASK;
-        pbuf = queue->pbuf[queue->tail];
+    /* Cycle the buffer index */
+    if(bufIdx < PBUF_QUEUE_SIZE) {
+        bufIdx++;
+    }
+    else {
+        bufIdx = 0;
     }
 
-    sys_mutex_unlock(&queue->mutex);
+    /* Alert the PTP thread there is now something to do. */
+    ptpd_alert(); /// @todo fix dependencies later
+}
 
-    return pbuf;
+/* Initialize network handler */
+static void netHandlerInit(packetHandler_t *handler, ip_addr_t *defaultAddr)
+{
+    /* Initialise mailboxes */
+    sys_mbox_new(&handler->inbox, PBUF_QUEUE_SIZE);
+    sys_mbox_new(&handler->outbox, PBUF_QUEUE_SIZE);
+
+    /* Create UDP PCB */
+    handler->pcb = udp_new();
+    if (NULL == handler->pcb) {
+        ERROR("netInit: Failed to open UDP PCB\n");
+        return;
+    }
+
+    /* Multicast send only on specified interface. */
+    handler->pcb->mcast_ip4.addr = defaultAddr->addr;
+
+    /* Establish the appropriate UDP bindings/connections for events. */
+    udp_recv(handler->pcb, netRecvCallback, handler);
+    udp_bind(handler->pcb, IP_ADDR_ANY, PTP_EVENT_PORT);
+}
+
+/* Shutdown network handler */
+static void netHandlerShutdown(packetHandler_t *handler)
+{
+    /* Disconnect and close the UDP interface */
+    if(handler->pcb) {
+        udp_disconnect(handler->pcb);
+        udp_remove(handler->pcb);
+        handler->pcb = NULL;
+    }
+
+    /* Delete mailboxes */
+    sys_mbox_free(&handler->inbox);
+    sys_mbox_free(&handler->outbox);
 }
 
 /* Free any remaining pbufs in the queue. */
@@ -80,100 +102,26 @@ static bool netQCheck(bufQueue_t *queue)
     return retval;
 }
 
-/* Process an incoming message on the Event port. */
-static void netRecvEventCallback(void *arg, struct udp_pcb *pcb, struct pbuf *p,
-                                                const ip_addr_t *addr, u16_t port)
-{
-    netPath_t *netPath = (netPath_t *)arg;
-
-    /* Place the incoming message on the Event Port QUEUE. */
-    if (!netQPut(&netPath->eventQ, p)) {
-        pbuf_free(p);
-        ERROR("netRecvEventCallback: queue full\n");
-        return;
-    }
-
-    /* Alert the PTP thread there is now something to do. */
-    ptpd_alert(); /// @todo fix dependencies later
-}
-
-/* Process an incoming message on the General port. */
-static void netRecvGeneralCallback(void *arg, struct udp_pcb *pcb, struct pbuf *p,
-                                                const ip_addr_t *addr, u16_t port)
-{
-    netPath_t *netPath = (netPath_t *)arg;
-
-    /* Place the incoming message on the Event Port QUEUE. */
-    if (!netQPut(&netPath->generalQ, p)) {
-        pbuf_free(p);
-        ERROR("netRecvGeneralCallback: queue full\n");
-        return;
-    }
-
-    /* Alert the PTP thread there is now something to do. */
-    ptpd_alert();
-}
-
 /* Start all of the UDP stuff - LOCKS CORE */
 bool netInit(netPath_t *netPath, ptpClock_t *ptpClock)
 {
-    LOCK_TCPIP_CORE();
-    ip_addr_t interfaceAddr;
+    LOCK_TCPIP_CORE(); // System must support core locking!
 
     DBG("netInit\n");
 
-    /* Initialize the buffer queues. */
-    netQInit(&netPath->eventQ);
-    netQInit(&netPath->generalQ);
-
-    /* Open lwIP raw udp interfaces for the event port. */
-    netPath->eventPcb = udp_new();
-    if (NULL == netPath->eventPcb) {
-        ERROR("netInit: Failed to open Event UDP PCB\n");
-        goto fail02;
-    }
-
-    /* Open lwIP raw udp interfaces for the general port. */
-    netPath->generalPcb = udp_new();
-    if (NULL == netPath->generalPcb) {
-        ERROR("netInit: Failed to open General UDP PCB\n");
-        goto fail03;
-    }
-
-    netPath->multicastAddr.addr = DEFAULT_PTP_DOMAIN_ADDRESS;
-
     /* Join multicast group (for receiving) on specified interface */
+    netPath->multicastAddr.addr = DEFAULT_PTP_DOMAIN_ADDRESS;
     igmp_joingroup(&netif_default->ip_addr, &netPath->multicastAddr);
 
-    netPath->peerMulticastAddr.addr = PEER_PTP_DOMAIN_ADDRESS;
-
     /* Join peer multicast group (for receiving) on specified interface */
-    igmp_joingroup(&netif_default->ip_addr, (ip_addr_t  *) &netPath->peerMulticastAddr);
+    netPath->peerMulticastAddr.addr = PEER_PTP_DOMAIN_ADDRESS;
+    igmp_joingroup(&netif_default->ip_addr, &netPath->peerMulticastAddr);
 
-    /* Multicast send only on specified interface. */
-    netPath->eventPcb->mcast_ip4.addr = netPath->multicastAddr.addr;
-    netPath->generalPcb->mcast_ip4.addr = netPath->multicastAddr.addr;
-
-    /* Establish the appropriate UDP bindings/connections for events. */
-    udp_recv(netPath->eventPcb, netRecvEventCallback, netPath);
-    udp_bind(netPath->eventPcb, IP_ADDR_ANY, PTP_EVENT_PORT);
-    /*  udp_connect(netPath->eventPcb, &netAddr, PTP_EVENT_PORT); */
-
-    /* Establish the appropriate UDP bindings/connections for general. */
-    udp_recv(netPath->generalPcb, netRecvGeneralCallback, netPath);
-    udp_bind(netPath->generalPcb, IP_ADDR_ANY, PTP_GENERAL_PORT);
-    /*  udp_connect(netPath->generalPcb, &netAddr, PTP_GENERAL_PORT); */
+    /* Initialize the buffer queues. */
+    netHandlerInit(&netPath->eventHandler, &netPath->multicastAddr.addr, netRecvEventCallback);
+    netHandlerInit(&netPath->generalHandler, &netPath->multicastAddr.addr, netRecvGeneralCallback);
 
     /* Return a success code. */
-    UNLOCK_TCPIP_CORE();
-    return true;
-
-fail04:
-    udp_remove(netPath->generalPcb);
-fail03:
-    udp_remove(netPath->eventPcb);
-fail02:
-fail01:
     UNLOCK_TCPIP_CORE();
     return true;
 }
@@ -189,22 +137,16 @@ void netShutdown(netPath_t *netPath)
     /* leave multicast group */
     igmp_leavegroup(IP_ADDR_ANY, &netPath->multicastAddr);
 
-    /* Disconnect and close the Event UDP interface */
-    if (netPath->eventPcb) {
-        udp_disconnect(netPath->eventPcb);
-        udp_remove(netPath->eventPcb);
-        netPath->eventPcb = NULL;
-    }
+    /* leave multicast group */
+    igmp_leavegroup(IP_ADDR_ANY, &netPath->peerMulticastAddr);
 
-    /* Disconnect and close the General UDP interface */
-    if (netPath->generalPcb) {
-        udp_disconnect(netPath->generalPcb);
-        udp_remove(netPath->generalPcb);
-        netPath->generalPcb = NULL;
-    }
+    /* Disconnect and close the UDP interfaces */
+    netHandlerShutdown(&netPath->eventHandler);
+    netHandlerShutdown(&netPath->generalHandler);
 
     /* Clear the network addresses. */
     netPath->multicastAddr.addr = 0;
+    netPath->peerMulticastAddr.addr = 0;
     UNLOCK_TCPIP_CORE();
 }
 
