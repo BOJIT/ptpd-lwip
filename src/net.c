@@ -73,35 +73,6 @@ static void netHandlerShutdown(packetHandler_t *handler)
     sys_mbox_free(&handler->outbox);
 }
 
-/* Free any remaining pbufs in the queue. */
-static void netQEmpty(bufQueue_t *queue)
-{
-    sys_mutex_lock(&queue->mutex);
-
-    // Free each remaining buffer in the queue.
-    while (queue->tail != queue->head) {
-        // Get the buffer from the queue.
-        queue->tail = (queue->tail + 1) & PBUF_QUEUE_MASK;
-        pbuf_free(queue->pbuf[queue->tail]);
-    }
-
-    sys_mutex_unlock(&queue->mutex);
-}
-
-/* Check if something is in the queue */
-static bool netQCheck(bufQueue_t *queue)
-{
-    bool  retval = false;
-
-    sys_mutex_lock(&queue->mutex);
-
-    if (queue->tail != queue->head) retval = true;
-
-    sys_mutex_unlock(&queue->mutex);
-
-    return retval;
-}
-
 /* Start all of the UDP stuff - LOCKS CORE */
 bool netInit(netPath_t *netPath, ptpClock_t *ptpClock)
 {
@@ -153,33 +124,36 @@ void netShutdown(netPath_t *netPath)
 /* Wait for a packet  to come in on either port.  For now, there is no wait.
  * Simply check to  see if a packet is available on either port and return 1,
  *  otherwise return 0. */
-int32_t netSelect(netPath_t *netPath)
-{
-    /* Check the packet queues.  If there is data, return TRUE. */
-    if (netQCheck(&netPath->eventQ) || netQCheck(&netPath->generalQ)) return 1;
+// int32_t netSelect(netPath_t *netPath)
+// {
+//     /* Check the packet queues.  If there is data, return TRUE. */
+//     if (netQCheck(&netPath->eventQ) || netQCheck(&netPath->generalQ)) return 1;
 
-    return 0;
-}
+//     return 0;
+// }
 
 /* Delete all waiting packets in event queue. */
 void netEmptyEventQ(netPath_t *netPath)
 {
-    netQEmpty(&netPath->eventQ);
+    void *msg;
+    while(sys_arch_mbox_tryfetch(&netPath->eventHandler.inbox, &msg) != SYS_MBOX_EMPTY);
 }
 
 /* Recieve network message and copy across timestamp */
-static ssize_t netRecv(octet_t *buf, timeInternal_t *time, bufQueue_t *msgQueue)
+static ssize_t netRecv(octet_t *buf, timeInternal_t *time, packetHandler_t *handler)
 {
     int i;
     int j;
     u16_t length;
     struct pbuf *p;
     struct pbuf *pcopy;
+    packet_t *packet;
 
-    /* Get the next buffer from the queue. */
-    if ((p = (struct pbuf*) netQGet(msgQueue)) == NULL) {
+    /* Fetch message from mailbox - return if inbox is empty */
+    if(sys_mbox_tryfetch(&handler->inbox, packet) == SYS_MBOX_EMPTY) {
         return 0;
     }
+    p = packet->pbuf;
 
     /* Verify that we have enough space to store the contents. */
     if (p->tot_len > PACKET_SIZE) {
@@ -280,13 +254,13 @@ fail01:
 /* Recieve Network Packet on Event Port */
 ssize_t netRecvEvent(netPath_t *netPath, octet_t *buf, timeInternal_t *time)
 {
-    return netRecv(buf, time, &netPath->eventQ);
+    return netRecv(buf, time, &netPath->eventHandler);
 }
 
 /* Recieve Network Packet on General Port */
 ssize_t netRecvGeneral(netPath_t *netPath, octet_t *buf, timeInternal_t *time)
 {
-    return netRecv(buf, time, &netPath->generalQ);
+    return netRecv(buf, time, &netPath->generalHandler);
 }
 
 /* Send Network Packet on Event Port */

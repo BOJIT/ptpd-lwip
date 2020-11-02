@@ -488,20 +488,22 @@ static void handle(ptpClock_t *ptpClock)
     bool isFromSelf;
     timeInternal_t time = { 0, 0};
 
-    if (false == ptpClock->messageActivity) {
-            /// @todo network code!
-            ret = netSelect(&ptpClock->netPath, 0);
+    // if (false == ptpClock->messageActivity) {
+    //         /// @todo network code!
+    //         ret = netSelect(&ptpClock->netPath, 0);
 
-            if (ret < 0) {
-                ERROR("handle: failed to poll sockets\n");
-                toState(ptpClock, PTP_FAULTY);
-                return;
-            }
-            else if (!ret) {
-                DBGVV("handle: nothing\n");
-                return;
-            }
-    }
+    //         if (ret < 0) {
+    //             ERROR("handle: failed to poll sockets\n");
+    //             toState(ptpClock, PTP_FAULTY);
+    //             return;
+    //         }
+    //         else if (!ret) {
+    //             DBGVV("handle: nothing\n");
+    //             return;
+    //         }
+    // }
+
+    /// @todo the above code prevents the network events being polled if definitely empty - may help speed
 
     DBGVV("handle: something\n");
 
@@ -529,7 +531,7 @@ static void handle(ptpClock_t *ptpClock)
             return;
         }
         else if (!ptpClock->msgIbufLength)
-            return;
+            return; // No packet present
     }
 
     ptpClock->messageActivity = true;
