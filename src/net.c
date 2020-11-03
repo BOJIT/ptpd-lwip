@@ -89,8 +89,8 @@ bool netInit(netPath_t *netPath, ptpClock_t *ptpClock)
     igmp_joingroup(&netif_default->ip_addr, &netPath->peerMulticastAddr);
 
     /* Initialize the buffer queues. */
-    netHandlerInit(&netPath->eventHandler, &netPath->multicastAddr.addr, netRecvEventCallback);
-    netHandlerInit(&netPath->generalHandler, &netPath->multicastAddr.addr, netRecvGeneralCallback);
+    netHandlerInit(&netPath->eventHandler, &netPath->multicastAddr.addr);
+    netHandlerInit(&netPath->generalHandler, &netPath->multicastAddr.addr);
 
     /* Return a success code. */
     UNLOCK_TCPIP_CORE();
