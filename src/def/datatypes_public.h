@@ -2,6 +2,7 @@
 #define __DATATYPES_PUBLIC__
 
 #include <lwip/arch.h>
+#include <lwip/sys.h>
 
 /**
  *\file
@@ -38,6 +39,7 @@ typedef struct {
     void (*ptpSetTime)(const timestamp_t*);
     void (*ptpUpdateCoarse)(const timestamp_t*, s8_t);
     void (*ptpUpdateFine)(s32_t);
+    sys_sem_t *ptpTxNotify;
 } ptpFunctions_t;
 
 #endif /* __DATATYPES_PUBLIC__ */

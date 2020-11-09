@@ -77,6 +77,7 @@ static void ptpd_thread(void *args __attribute((unused))) {
         // Process the current state.
         doState(&ptpClock);
 
+        /// @todo THIS NEEDS TO GO!!!
         // Wait up to 100ms for something to do, then do something anyway.
         if(sys_arch_mbox_tryfetch(&ptpClock.timerAlerts, &msg) == SYS_MBOX_EMPTY)
             sys_arch_mbox_fetch(&ptpClock.packetAlerts, &msg, 100); // THIS LOGIC IS FLAWED!!!
@@ -92,6 +93,9 @@ void ptpdInit(ptpFunctions_t *functions, u8_t priority)
 
     /* Pass HAL function pointers to sys_time module */
     initTimeFunctions(functions);
+
+    /* Pass NET semaphore to driver */
+    ptpClock.netPath.ptpTxNotify = functions->ptpTxNotify;
 
     // Create the alert queue mailbox.
     if(sys_mbox_new(&ptpClock.timerAlerts, 16) != ERR_OK) {

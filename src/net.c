@@ -2,6 +2,8 @@
 
 #include "net.h"
 
+#include <lwip/tcpip.h>
+
 /// @todo Horrendously inefficient PBUF copying about 3 times! Fix soon.
 
 /* Process an incoming message */
@@ -34,6 +36,12 @@ static void netRecvCallback(void *arg, struct udp_pcb *pcb, struct pbuf *p,
 
     /* Alert the PTP thread there is now something to do. */
     ptpd_alert(); /// @todo fix dependencies later
+}
+
+/* Process an outgoing message */
+static void netSendCallback(void *ctx)
+{
+    /// @todo!!!
 }
 
 /* Initialize network handler */
@@ -169,6 +177,7 @@ static ssize_t netRecv(octet_t *buf, timeInternal_t *time, packetHandler_t *hand
         return 0;
     }
 
+    /* Copy across timestamp if required. */
     if (time != NULL) {
         #if LWIP_PTP
             time->seconds = p->tv_sec;
@@ -203,51 +212,63 @@ static ssize_t netRecv(octet_t *buf, timeInternal_t *time, packetHandler_t *hand
 }
 
 // Problem...
-static ssize_t netSend(const octet_t *buf, int16_t  length, timeInternal_t *time,
-                                        const int32_t * addr, struct udp_pcb * pcb)
+static ssize_t netSend(const octet_t *buf, int16_t length, timeInternal_t *time,
+                        const int32_t *addr, packetHandler_t *handler, sys_sem_t *ptpTxNotify)
 {
-	err_t result;
-	struct pbuf * p;
+    err_t result;
+    struct pbuf *p;
 
-	/* Allocate the tx pbuf based on the current size. */
-	p = pbuf_alloc(PBUF_TRANSPORT, length, PBUF_RAM);
-	if (NULL == p) {
-		ERROR("netSend: Failed to allocate Tx Buffer\n");
-		goto fail01;
-	}
+    /* Allocate the tx pbuf based on the current size. */
+    p = pbuf_alloc(PBUF_TRANSPORT, length, PBUF_RAM);
+    if (NULL == p) {
+        ERROR("netSend: Failed to allocate Tx Buffer\n");
+        return 0;
+    }
 
-	/* Copy the incoming data into the pbuf payload. */
-	result = pbuf_take(p, buf, length);
-	if (ERR_OK != result) {
-		ERROR("netSend: Failed to copy data to Pbuf (%d)\n", result);
-		goto fail02;
-	}
+    /* Copy the incoming data into the pbuf payload. */
+    result = pbuf_take(p, buf, length);
+    if (ERR_OK != result) {
+        ERROR("netSend: Failed to copy data to Pbuf (%d)\n", result);
+        pbuf_free(p);
+        return 0;
+    }
 
+    if (time != NULL) {
+        /* Tag the pbuf to tell stack that a timestamp will be taken */
+        p->tv_sec = UINT32_MAX;
+        p->tv_nsec = UINT32_MAX;
+    }
+
+    /* Add message to outbox */
+    /// @todo!!!
 	/* send the buffer. */
-	result = udp_sendto(pcb, p, (void *)addr, pcb->local_port);
-	if (ERR_OK != result) {
-		ERROR("netSend: Failed to send data (%d)\n", result);
-		goto fail02;
-	}
+	result = udp_sendto(pcb, p, (void *)addr, pcb->local_port); // ERR_OK?
 
-	if (time != NULL) {
+    /* Notify Transmit Handler that there is a packet to process */
+    tcpip_callback_with_block(netSendCallback, (void *)handler, 1);
+
+    /* Write timestamp to PTP internal time if required (wait for tx) */
+    if (time != NULL) {
         #if LWIP_PTP
+            sys_arch_sem_wait(ptpTxNotify, 100);
+
+            if(p->tv_sec & p->tv_nsec != UINT32_MAX) {
             time->seconds = p->tv_sec;
             time->nanoseconds = p->tv_nsec;
+            }
+            else {
+                DBGVV("Timestamp Corrupted!");
+                return 0;
+            }
         #else
-            getTime(time);
+            getTime(time);  // This does not take use hardware timstamping.
         #endif
-		DBGV("netSend: %d sec %d nsec\n", time->seconds, time->nanoseconds);
-	}
+        DBGV("netSend: %d sec %d nsec\n", time->seconds, time->nanoseconds);
+    }
     else {
-		DBGV("netSend\n");
-	}
+        DBGV("netSend\n");
+    }
 
-
-fail02:
-    pbuf_free(p);
-
-fail01:
     return length;
 }
 
@@ -267,24 +288,28 @@ ssize_t netRecvGeneral(netPath_t *netPath, octet_t *buf, timeInternal_t *time)
 ssize_t netSendEvent(netPath_t *netPath, const octet_t *buf,
                                         int16_t length, timeInternal_t *time)
 {
-    return netSend(buf, length, time, &netPath->multicastAddr, netPath->eventPcb);
+    return netSend(buf, length, time, &netPath->multicastAddr,
+                                &netPath->eventHandler, &netPath->ptpTxNotify);
 }
 
 /* Send Network Packet on General Port */
 ssize_t netSendGeneral(netPath_t *netPath, const octet_t *buf, int16_t length)
 {
-    return netSend(buf, length, NULL, &netPath->multicastAddr, netPath->generalPcb);
+    return netSend(buf, length, NULL, &netPath->multicastAddr,
+                                                &netPath->generalHandler, NULL);
 }
 
 /* Send Network Packet on Peer Event Port */
 ssize_t netSendPeerEvent(netPath_t *netPath, const octet_t *buf,
                                         int16_t length, timeInternal_t *time)
 {
-    return netSend(buf, length, time, &netPath->peerMulticastAddr, netPath->eventPcb);
+    return netSend(buf, length, time, &netPath->peerMulticastAddr,
+                                &netPath->eventHandler, &netPath->ptpTxNotify);
 }
 
 /* Send Network Packet on Peer General Port */
 ssize_t netSendPeerGeneral(netPath_t *netPath, const octet_t *buf, int16_t length)
 {
-    return netSend(buf, length, NULL, &netPath->peerMulticastAddr, netPath->generalPcb);
+    return netSend(buf, length, NULL, &netPath->peerMulticastAddr,
+                                                &netPath->generalHandler, NULL);
 }

@@ -12,7 +12,6 @@
 #include <stdbool.h>
 #include <lwip/pbuf.h>
 #include <lwip/udp.h>
-#include <lwip/sys.h>
 
 #include "datatypes_public.h"
 #include "constants.h"
@@ -427,6 +426,8 @@ typedef struct {
 typedef struct {
     ip_addr_t multicastAddr;
     ip_addr_t peerMulticastAddr;
+
+    sys_sem_t *ptpTxNotify;
 
     packetHandler_t eventHandler;
     packetHandler_t generalHandler;

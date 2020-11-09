@@ -20,7 +20,8 @@
     "build": {
         "srcFilter": [
             "+<*>",
-            "-<protocol.c>"
+            "-<protocol.c>",
+            "-<net.c>"
         ]
     },
     "dependencies": {

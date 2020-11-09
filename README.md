@@ -29,3 +29,5 @@ Prerequisites:
 - check the validity of the lwip timers + check for memory allocation issues here!
 
 - management message handling doesn't appear to be implemented in AN3411. Look into this.
+
+- If hardware timestamping is used, ptpClock->Outbound/Inbound Latency = 0, but events must wait for a callback

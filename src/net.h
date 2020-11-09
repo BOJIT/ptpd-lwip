@@ -18,11 +18,6 @@ bool netInit(netPath_t *netPath, ptpClock_t *ptpClock);
 /* Shut down the UDP and network stuff - LOCKS CORE */
 void netShutdown(netPath_t *netPath);
 
-/* Wait for a packet  to come in on either port.  For now, there is no wait.
- * Simply check to  see if a packet is available on either port and return 1,
- *  otherwise return 0. */
-int32_t netSelect(netPath_t *netPath);
-
 /* Delete all waiting packets in event queue. */
 void netEmptyEventQ(netPath_t *netPath);
 
