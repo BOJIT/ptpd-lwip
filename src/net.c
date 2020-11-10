@@ -288,7 +288,7 @@ static ssize_t netSend(const octet_t *buf, int16_t length, timeInternal_t *time,
     }
 
     /* Notify Transmit Handler that there is a packet to process */
-    if(tcpip_callback_with_block(netSendCallback, (void *)handler, 1) != ERR_OK)
+    if(tcpip_callback(netSendCallback, (void *)handler) != ERR_OK)
         return 0;
 
     /* Write timestamp to PTP internal time if required (wait for tx) */
