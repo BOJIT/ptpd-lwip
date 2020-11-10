@@ -17,9 +17,6 @@
 #include "protocol.h"
 #include "sys_time.h"
 
-/* Include FreeRTOS-Debug library headers */
-#include <FreeRTOS-Debug.h> // GET RID OF LATER!!!
-
 ptpClock_t ptpClock;
 runTimeOpts_t rtOpts;
 foreignMasterRecord_t ptpForeignRecords[DEFAULT_MAX_FOREIGN_RECORDS];
@@ -51,7 +48,7 @@ static void ptpd_thread(void *args __attribute((unused))) {
     rtOpts.delayMechanism = DEFAULT_DELAY_MECHANISM;
 
     ptpClock.rtOpts = &rtOpts;
-    ptpClock.foreignMasterDS.records = &ptpForeignRecords;
+    ptpClock.foreignMasterDS.records = ptpForeignRecords;
 
     /* 9.2.2 */
     if (rtOpts.slaveOnly) rtOpts.clockQuality.clockClass = DEFAULT_CLOCK_CLASS_SLAVE_ONLY;

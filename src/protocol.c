@@ -5,7 +5,9 @@
 #include "arith.h"
 #include "bmc.h"
 #include "msg.h"
+#include "net.h"
 #include "servo.h"
+#include "sys_time.h"
 #include "timer.h"
 
 /* Local (static) function declarations */
@@ -484,7 +486,7 @@ void doState(ptpClock_t *ptpClock)
 /* Check and handle received messages */
 static void handle(ptpClock_t *ptpClock)
 {
-    int ret;
+    // int ret; // unused
     bool isFromSelf;
     timeInternal_t time = { 0, 0};
 
@@ -663,6 +665,7 @@ static void handleAnnounce(ptpClock_t *ptpClock, bool isFromSelf)
 
         case PTP_PASSIVE:
             timerStart(ANNOUNCE_RECEIPT_TIMER, (ptpClock->portDS.announceReceiptTimeout)*(pow2ms(ptpClock->portDS.logAnnounceInterval)));
+            // fall through
         case PTP_MASTER:
         case PTP_PRE_MASTER:
         case PTP_LISTENING:
@@ -860,6 +863,7 @@ static void handleFollowUp(ptpClock_t *ptpClock, bool isFromSelf)
 /* Handle delay requests */
 static void handleDelayReq(ptpClock_t *ptpClock, timeInternal_t *time, bool isFromSelf)
 {
+    (void)isFromSelf; // unused
     switch (ptpClock->portDS.delayMechanism) {
         case E2E:
 
@@ -920,6 +924,7 @@ static void handleDelayReq(ptpClock_t *ptpClock, timeInternal_t *time, bool isFr
 /* Handle delay responses */
 static void handleDelayResp(ptpClock_t *ptpClock, bool  isFromSelf)
 {
+    (void)isFromSelf; // unused
     bool isFromCurrentParent = false;
     bool isCurrentRequest = false;
     timeInternal_t correctionField;
@@ -1154,6 +1159,7 @@ static void handlePDelayResp(ptpClock_t *ptpClock, timeInternal_t *time, bool is
 /* Handle peer delay follow-up mesages */
 static void handlePDelayRespFollowUp(ptpClock_t *ptpClock, bool isFromSelf)
 {
+    (void)isFromSelf; // unused
     timeInternal_t responseOriginTimestamp;
     timeInternal_t correctionField;
 
@@ -1214,6 +1220,8 @@ static void handlePDelayRespFollowUp(ptpClock_t *ptpClock, bool isFromSelf)
 /* Handle management messages (not implemented) */
 static void handleManagement(ptpClock_t *ptpClock, bool isFromSelf)
 {
+    (void)ptpClock; // unused
+    (void)isFromSelf; // unused
     /* ENABLE_PORT -> DESIGNATED_ENABLED -> toState(PTP_INITIALIZING) */
     /* DISABLE_PORT -> DESIGNATED_DISABLED -> toState(PTP_DISABLED) */
 }
@@ -1221,6 +1229,8 @@ static void handleManagement(ptpClock_t *ptpClock, bool isFromSelf)
 /* Handle signalling messages (not implemented) */
 static void handleSignaling(ptpClock_t *ptpClock, bool isFromSelf)
 {
+    (void)ptpClock; // unused
+    (void)isFromSelf; // unused
 }
 
 /* Issue delay requests when the timers have expired */

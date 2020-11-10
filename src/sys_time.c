@@ -4,6 +4,8 @@
 
 #include <stdlib.h>
 
+#include "net.h"
+
 /* Stores function pointers to timer functions */
 static ptpFunctions_t ptpFunctions;
 

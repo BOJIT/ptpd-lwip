@@ -3,6 +3,7 @@
 #include <stdlib.h>
 
 #include "arith.h"
+#include "net.h"
 #include "sys_time.h"
 
 /**

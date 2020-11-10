@@ -3,6 +3,7 @@
 #include "net.h"
 
 #include <lwip/tcpip.h>
+#include <lwip/igmp.h>
 
 /// @todo Horrendously inefficient PBUF copying about 3 times! Fix soon.
 
@@ -10,6 +11,11 @@
 static void netRecvCallback(void *arg, struct udp_pcb *pcb, struct pbuf *p,
                                                 const ip_addr_t *addr, u16_t port)
 {
+    (void)(pcb);    // UNUSED
+    (void)(port);   // UNUSED
+
+    DEBUG_MESSAGE(DEBUG_TYPE_INFO, "Packet Arrived!");
+
     packetHandler_t *handler = (packetHandler_t *)arg;
 
     static int bufIdx = 0;
@@ -35,19 +41,23 @@ static void netRecvCallback(void *arg, struct udp_pcb *pcb, struct pbuf *p,
     }
 
     /* Alert the PTP thread there is now something to do. */
-    ptpd_alert(); /// @todo fix dependencies later
+    /// @todo sort how alert queues work...
+    // ptpd_alert(); /// @todo fix dependencies later
 }
 
 /* Process an outgoing message */
 static void netSendCallback(void *arg)
 {
     packetHandler_t *handler = (packetHandler_t *)arg;
+    void* msg;
     packet_t *packet;
 
     /* Fetch message from mailbox - return if inbox is empty */
-    if(sys_mbox_tryfetch(&handler->inbox, packet) == SYS_MBOX_EMPTY) {
+    if(sys_arch_mbox_tryfetch(&handler->inbox, &msg) == SYS_MBOX_EMPTY) {
         return;
     }
+
+    packet = (packet_t *)msg;
 
     /* send the buffer. */
     udp_sendto(handler->pcb, packet->pbuf, &packet->destAddr,
@@ -87,13 +97,17 @@ static void netHandlerShutdown(packetHandler_t *handler)
     }
 
     /* Delete mailboxes */
-    sys_mbox_free(&handler->inbox);
-    sys_mbox_free(&handler->outbox);
+    if(sys_mbox_valid(&handler->inbox))
+        sys_mbox_free(&handler->inbox);
+    if(sys_mbox_valid(&handler->outbox))
+        sys_mbox_free(&handler->outbox);
 }
 
 /* Start all of the UDP stuff - LOCKS CORE */
 bool netInit(netPath_t *netPath, ptpClock_t *ptpClock)
 {
+    (void)(ptpClock); // UNUSED
+
     LOCK_TCPIP_CORE(); // System must support core locking!
 
     DBG("netInit\n");
@@ -107,8 +121,8 @@ bool netInit(netPath_t *netPath, ptpClock_t *ptpClock)
     igmp_joingroup(&netif_default->ip_addr, &netPath->peerMulticastAddr);
 
     /* Initialize the buffer queues. */
-    netHandlerInit(&netPath->eventHandler, &netPath->multicastAddr.addr);
-    netHandlerInit(&netPath->generalHandler, &netPath->multicastAddr.addr);
+    netHandlerInit(&netPath->eventHandler, &netPath->multicastAddr);
+    netHandlerInit(&netPath->generalHandler, &netPath->multicastAddr);
 
     /* Return a success code. */
     UNLOCK_TCPIP_CORE();
@@ -119,7 +133,6 @@ bool netInit(netPath_t *netPath, ptpClock_t *ptpClock)
 void netShutdown(netPath_t *netPath)
 {
     LOCK_TCPIP_CORE();
-    ip_addr_t multicastAaddr;
 
     DBG("netShutdown\n");
 
@@ -165,12 +178,14 @@ static ssize_t netRecv(octet_t *buf, timeInternal_t *time, packetHandler_t *hand
     u16_t length;
     struct pbuf *p;
     struct pbuf *pcopy;
+    void *msg;
     packet_t *packet;
 
     /* Fetch message from mailbox - return if inbox is empty */
-    if(sys_mbox_tryfetch(&handler->inbox, packet) == SYS_MBOX_EMPTY) {
+    if(sys_arch_mbox_tryfetch(&handler->inbox, &msg) == SYS_MBOX_EMPTY) {
         return 0;
     }
+    packet = (packet_t *)msg;
     p = packet->pbuf;
 
     /* Verify that we have enough space to store the contents. */
@@ -281,7 +296,7 @@ static ssize_t netSend(const octet_t *buf, int16_t length, timeInternal_t *time,
         #if LWIP_PTP
             sys_arch_sem_wait(ptpTxNotify, 100);
 
-            if(p->tv_sec & p->tv_nsec != UINT32_MAX) {
+            if((p->tv_sec & p->tv_nsec) != UINT32_MAX) {
             time->seconds = p->tv_sec;
             time->nanoseconds = p->tv_nsec;
             }
@@ -318,7 +333,7 @@ ssize_t netSendEvent(netPath_t *netPath, const octet_t *buf,
                                         int16_t length, timeInternal_t *time)
 {
     return netSend(buf, length, time, &netPath->multicastAddr,
-                                &netPath->eventHandler, &netPath->ptpTxNotify);
+                                &netPath->eventHandler, netPath->ptpTxNotify);
 }
 
 /* Send Network Packet on General Port */
@@ -333,7 +348,7 @@ ssize_t netSendPeerEvent(netPath_t *netPath, const octet_t *buf,
                                         int16_t length, timeInternal_t *time)
 {
     return netSend(buf, length, time, &netPath->peerMulticastAddr,
-                                &netPath->eventHandler, &netPath->ptpTxNotify);
+                                &netPath->eventHandler, netPath->ptpTxNotify);
 }
 
 /* Send Network Packet on Peer General Port */
