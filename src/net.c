@@ -39,9 +39,19 @@ static void netRecvCallback(void *arg, struct udp_pcb *pcb, struct pbuf *p,
 }
 
 /* Process an outgoing message */
-static void netSendCallback(void *ctx)
+static void netSendCallback(void *arg)
 {
-    /// @todo!!!
+    packetHandler_t *handler = (packetHandler_t *)arg;
+    packet_t *packet;
+
+    /* Fetch message from mailbox - return if inbox is empty */
+    if(sys_mbox_tryfetch(&handler->inbox, packet) == SYS_MBOX_EMPTY) {
+        return;
+    }
+
+    /* send the buffer. */
+    udp_sendto(handler->pcb, packet->pbuf, &packet->destAddr,
+                                            handler->pcb->local_port);
 }
 
 /* Initialize network handler */
@@ -213,7 +223,7 @@ static ssize_t netRecv(octet_t *buf, timeInternal_t *time, packetHandler_t *hand
 
 // Problem...
 static ssize_t netSend(const octet_t *buf, int16_t length, timeInternal_t *time,
-                        const int32_t *addr, packetHandler_t *handler, sys_sem_t *ptpTxNotify)
+                        const ip_addr_t *addr, packetHandler_t *handler, sys_sem_t *ptpTxNotify)
 {
     err_t result;
     struct pbuf *p;
@@ -240,12 +250,31 @@ static ssize_t netSend(const octet_t *buf, int16_t length, timeInternal_t *time,
     }
 
     /* Add message to outbox */
-    /// @todo!!!
-	/* send the buffer. */
-	result = udp_sendto(pcb, p, (void *)addr, pcb->local_port); // ERR_OK?
+    static int bufIdx = 0;
+
+    /* Back up existing packet and overwrite with new data */
+    packet_t packetTmp = handler->outboxBuf[bufIdx];
+    handler->outboxBuf[bufIdx].pbuf = p;
+    handler->outboxBuf[bufIdx].destAddr.addr = addr->addr;
+
+    if(sys_mbox_trypost(&handler->outbox, &handler->outboxBuf[bufIdx]) != ERR_OK) {
+        ERROR("netSend: queue full\n");
+        pbuf_free(p);
+        handler->outboxBuf[bufIdx] = packetTmp;
+        return 0;
+    }
+
+    /* Cycle the buffer index */
+    if(bufIdx < PBUF_QUEUE_SIZE) {
+        bufIdx++;
+    }
+    else {
+        bufIdx = 0;
+    }
 
     /* Notify Transmit Handler that there is a packet to process */
-    tcpip_callback_with_block(netSendCallback, (void *)handler, 1);
+    if(tcpip_callback_with_block(netSendCallback, (void *)handler, 1) != ERR_OK)
+        return 0;
 
     /* Write timestamp to PTP internal time if required (wait for tx) */
     if (time != NULL) {
