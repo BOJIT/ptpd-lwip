@@ -2,6 +2,8 @@
 
 #include "protocol.h"
 
+#if LWIP_PTP || defined __DOXYGEN__
+
 #include "arith.h"
 #include "bmc.h"
 #include "msg.h"
@@ -271,7 +273,7 @@ void toState(ptpClock_t *ptpClock, u8_t state)
  */
 static bool doInit(ptpClock_t *ptpClock)
 {
-    DBG("manufacturerIdentity: %s\n", MANUFACTURER_ID);
+    DBG("manufacturerIdentity: %s\n", LWIP_PTP_MANUFACTURER_ID);
 
     /* initialize networking */
     netShutdown(&ptpClock->netPath);
@@ -1450,3 +1452,4 @@ static void issuePDelayRespFollowUp(ptpClock_t *ptpClock, const timeInternal_t *
     }
 }
 
+#endif /* LWIP_PTP || defined __DOXYGEN__ */

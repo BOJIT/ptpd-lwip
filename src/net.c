@@ -2,6 +2,8 @@
 
 #include "net.h"
 
+#if LWIP_PTP || defined __DOXYGEN__
+
 #include <lwip/tcpip.h>
 #include <lwip/igmp.h>
 
@@ -293,7 +295,7 @@ static ssize_t netSend(const octet_t *buf, int16_t length, timeInternal_t *time,
 
     /* Write timestamp to PTP internal time if required (wait for tx) */
     if (time != NULL) {
-        #if LWIP_PTP
+        #if LWIP_PTP /** @todo!!! remove this macro */
             sys_arch_sem_wait(ptpTxNotify, 100);
 
             if((p->tv_sec & p->tv_nsec) != UINT32_MAX) {
@@ -357,3 +359,5 @@ ssize_t netSendPeerGeneral(netPath_t *netPath, const octet_t *buf, int16_t lengt
     return netSend(buf, length, NULL, &netPath->peerMulticastAddr,
                                                 &netPath->generalHandler, NULL);
 }
+
+#endif /* LWIP_PTP || defined __DOXYGEN__ */

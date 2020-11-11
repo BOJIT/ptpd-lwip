@@ -1,5 +1,5 @@
-#ifndef __PTPD_PROTOCOL_H__
-#define __PTPD_PROTOCOL_H__
+#ifndef __LWIP_PTP_PROTOCOL_H__
+#define __LWIP_PTP_PROTOCOL_H__
 
 /**
  * @file
@@ -24,4 +24,4 @@ void doState(ptpClock_t *ptpClock);
  */
 void toState(ptpClock_t *ptpClock, u8_t state);
 
-#endif /* __PTPD_PROTOCOL_H__ */
+#endif /* __LWIP_PTP_PROTOCOL_H__ */

@@ -1,5 +1,5 @@
-#ifndef __PTPD_MSG_H__
-#define __PTPD_MSG_H__
+#ifndef __LWIP_PTP_MSG_H__
+#define __LWIP_PTP_MSG_H__
 
 /**
  * @file
@@ -74,4 +74,4 @@ void msgPackPDelayRespFollowUp(octet_t *buf, const msgHeader_t *header,
 void msgUnpackPDelayRespFollowUp(const octet_t *buf ,
                                         msgPDelayRespFollowUp_t *prespfollow);
 
-#endif /* __PTPD_MSG_H__ */
+#endif /* __LWIP_PTP_MSG_H__ */

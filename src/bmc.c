@@ -2,6 +2,8 @@
 
 #include "bmc.h"
 
+#if LWIP_PTP || defined __DOXYGEN__
+
 #include <string.h>
 
 /* Convert EUI48 format to EUI64 */
@@ -421,4 +423,4 @@ u8_t bmc(ptpClock_t *ptpClock)
     return bmcStateDecision(&ptpClock->foreignMasterDS.records[best].header, &ptpClock->foreignMasterDS.records[best].announce, ptpClock);
 }
 
-
+#endif /* LWIP_PTP || defined __DOXYGEN__ */

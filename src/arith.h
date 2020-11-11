@@ -1,5 +1,5 @@
-#ifndef __PTPD_ARITH_H__
-#define __PTPD_ARITH_H__
+#ifndef __LWIP_PTP_ARITH_H__
+#define __LWIP_PTP_ARITH_H__
 
 /**
  * @file
@@ -55,4 +55,4 @@ void div2Time(timeInternal_t *r);
  */
 s32_t floorLog2(u32_t n);
 
-#endif /* __PTPD_ARITH_H__ */
+#endif /* __LWIP_PTP_ARITH_H__ */

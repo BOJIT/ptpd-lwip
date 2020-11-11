@@ -1,5 +1,5 @@
-#ifndef __PTPD_DATATYPES_PRIVATE_H__
-#define __PTPD_DATATYPES_PRIVATE_H__
+#ifndef __LWIP_PTP_DATATYPES_PRIVATE_H__
+#define __LWIP_PTP_DATATYPES_PRIVATE_H__
 
 /**
  *\file
@@ -13,8 +13,8 @@
 #include <lwip/pbuf.h>
 #include <lwip/udp.h>
 
+#include "opt.h"
 #include "datatypes_public.h"
-#include "constants.h"
 
 /* Include FreeRTOS-Debug library headers */
 #include <FreeRTOS-Debug.h> // GET RID OF LATER!!!
@@ -523,4 +523,4 @@ typedef struct {
     runTimeOpts_t* rtOpts;
 } ptpClock_t;
 
-#endif /* __PTPD_DATATYPES_PRIVATE_H__ */
+#endif /* __LWIP_PTP_DATATYPES_PRIVATE_H__ */

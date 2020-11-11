@@ -5,6 +5,8 @@
 
 #include "msg.h"
 
+#if LWIP_PTP || defined __DOXYGEN__
+
 #include <string.h>
 
 // Note - if this works out to be inefficient, consider restructuring to use
@@ -302,3 +304,5 @@ void msgUnpackPDelayRespFollowUp(const octet_t *buf ,
     memcpy(prespfollow->requestingPortIdentity.clockIdentity, (buf + 44), CLOCK_IDENTITY_LENGTH);
     prespfollow->requestingPortIdentity.portNumber = flip16(*(int16_t*)(buf + 52));
 }
+
+#endif /* LWIP_PTP || defined __DOXYGEN__ */

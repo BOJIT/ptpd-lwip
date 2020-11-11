@@ -1,5 +1,7 @@
 #include "servo.h"
 
+#if LWIP_PTP || defined __DOXYGEN__
+
 #include <stdlib.h>
 
 #include "arith.h"
@@ -343,3 +345,5 @@ void updateClock(ptpClock_t *ptpClock)
     ptpClock->currentDS.offsetFromMaster.nanoseconds);
     DBG("updateClock: observed drift: %d\n", ptpClock->observedDrift);
 }
+
+#endif /* LWIP_PTP || defined __DOXYGEN__ */

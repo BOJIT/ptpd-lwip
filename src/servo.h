@@ -1,5 +1,5 @@
-#ifndef __PTPD_SERVO_H__
-#define __PTPD_SERVO_H__
+#ifndef __LWIP_PTP_SERVO_H__
+#define __LWIP_PTP_SERVO_H__
 
 /**
  * @file
@@ -32,4 +32,4 @@ void updatePeerDelay(ptpClock_t *ptpClock, const timeInternal_t *correctionField
 /* Update local clock based on timestamps */
 void updateClock(ptpClock_t *ptpClock);
 
-#endif /* __PTPD_SERVO_H__ */
+#endif /* __LWIP_PTP_SERVO_H__ */

@@ -10,6 +10,8 @@
 
 #include "arith.h"
 
+#if LWIP_PTP || defined __DOXYGEN__
+
 /**
  * \brief Convert scaled nanoseconds into TimeInternal structure
  */
@@ -141,3 +143,5 @@ s32_t floorLog2(u32_t n)
     if (n >= 1<< 1) {           pos +=  1; }
     return pos;
 }
+
+#endif /* LWIP_PTP || defined __DOXYGEN__ */

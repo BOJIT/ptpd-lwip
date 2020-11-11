@@ -1,5 +1,5 @@
-#ifndef __PTPD_SYS_TIME_H__
-#define __PTPD_SYS_TIME_H__
+#ifndef __LWIP_PTP_SYS_TIME_H__
+#define __LWIP_PTP_SYS_TIME_H__
 
 /**
  * @file
@@ -12,8 +12,8 @@
 
 #include "def/datatypes_private.h"
 
-/* Assign function pointers to sys_time functions */
-void initTimeFunctions(ptpFunctions_t *functions);
+// /* Assign function pointers to sys_time functions */
+// void initTimeFunctions(ptpFunctions_t *functions);
 
 /* display local clock stats */
 void displayStats(const ptpClock_t *ptpClock);
@@ -33,4 +33,4 @@ bool adjFreq(s32_t adj);
 /* Generate random integer up to specified maximum */
 u32_t getRand(u32_t randMax);
 
-#endif /* __PTPD_SYS_TIME_H__ */
+#endif /* __LWIP_PTP_SYS_TIME_H__ */

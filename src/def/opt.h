@@ -1,20 +1,69 @@
-#ifndef __PTPD_CONSTANTS_H__
-#define __PTPD_CONSTANTS_H__
+#ifndef __LWIP_PTP_OPT_H__
+#define __LWIP_PTP_OPT_H__
 
 /**
  *\file
- * \brief Default values and constants used in ptpdv2
+ * \brief Default configuration options in LWIP_PTP
  *
  * This header file includes all default values used during initialization
  * and enumeration defined in the spec
  */
 
+#define LWIP_PTP_CONTEXT // allows lwipopt.h options to be masked from LWIP_PTP.
+
+/* Pull configuration data from lwipopts.h config file. */
+#include "lwipopts.h"
+
 #include <lwip/netif.h>
+
+/*--------------------------- LWIP_PTP Configuration -------------------------*/
+
+
+#if LWIP_PTP || defined __DOXYGEN__
+
+    /**
+     * LWIP_PTP_GET_TIME
+     * @brief function used to get the system PTP time (absolute).
+     */
+    #if !defined LWIP_PTP_GET_TIME || defined __DOXYGEN__
+        #error "No 'LWIP_PTP_GET_TIME' function configured in lwipopts.h!"
+    #endif /* !defined LWIP_PTP_GET_TIME || defined __DOXYGEN__ */
+
+    /**
+     * LWIP_PTP_SET_TIME
+     * @brief function used to set the system PTP time (absolute).
+     */
+    #if !defined LWIP_PTP_SET_TIME || defined __DOXYGEN__
+        #error "No 'LWIP_PTP_SET_TIME' function configured in lwipopts.h!"
+    #endif /* !defined LWIP_PTP_SET_TIME || defined __DOXYGEN__ */
+
+    /**
+     * LWIP_PTP_UPDATE_COARSE
+     * @brief function used to update the system time by a time interval in a
+     * single step (coarse correction mode)
+     */
+    #if !defined LWIP_PTP_UPDATE_COARSE || defined __DOXYGEN__
+        #error "No 'LWIP_PTP_UPDATE_COARSE' function configured in lwipopts.h!"
+    #endif /* !defined LWIP_PTP_UPDATE_COARSE || defined __DOXYGEN__ */
+
+    /**
+     * LWIP_PTP_UPDATE_FINE
+     * @brief function used to update the system time by adjusting the frequency
+     * of the system clock.
+     */
+    #if !defined LWIP_PTP_UPDATE_FINE || defined __DOXYGEN__
+        #error "No 'LWIP_PTP_UPDATE_FINE' function configured in lwipopts.h!"
+    #endif /* !defined LWIP_PTP_UPDATE_FINE || defined __DOXYGEN__ */
+
+#endif /* LWIP_PTP || defined __DOXYGEN__ */
+
+
+/*----------------------------- LWIP_PTP Constants ---------------------------*/
 
 /* 5.3.4 ClockIdentity */
 #define CLOCK_IDENTITY_LENGTH 8
 
-#define MANUFACTURER_ID \
+#define LWIP_PTP_MANUFACTURER_ID \
         "PTPd;2.0.1\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
 
 /* Implementation specific constants */
@@ -63,6 +112,7 @@
 #define SLAVE_ONLY        true
 /// @todo check if master can be implemented easily?
 #define NO_ADJUST         false
+
 
 /** \name Packet length
  Minimal length values for each message.
@@ -130,7 +180,7 @@
 #define SCREEN_BUFSZ  128
 #define SCREEN_MAXSZ  80
 
-/* Enumeration  defined in tables of the spec */
+/*---------------- Enumerations defined in tables of the spec ----------------*/
 
 /**
  * \brief Domain Number (Table 2 in the spec)
@@ -307,6 +357,8 @@ enum
     PTP_TIMESCALE
 };
 
+/*--------------------------------- Debugging --------------------------------*/
+
 #ifdef PTPD_DBG
 #define PTPD_ERR
 #define DBG(...)  { TimeInternal tmpTime; getTime(&tmpTime); printf("(D %d.%09d) ", tmpTime.seconds, tmpTime.nanoseconds); printf(__VA_ARGS__); }
@@ -338,6 +390,10 @@ enum
 #define ERROR(...)
 #endif
 
+/*---------------------------- Architecture Macros ---------------------------*/
+
+/** @todo get endianness from LWIP to save it being defined separately */
+
 /* Bit manipulation macros */
 #define getFlag(flagField, mask) (bool)(((flagField)  & (mask)) == (mask))
 #define setFlag(flagField, mask) (flagField) |= (mask)
@@ -355,4 +411,9 @@ enum
 #define flip16(x) htons(x)
 #define flip32(x) htonl(x)
 
-#endif /* __PTPD_CONSTANTS_H__ */
+/* Macro for intentionally suppressing unused variable warnings */
+#define UNUSED(x) (void)(x)
+
+/*----------------------------------------------------------------------------*/
+
+#endif /* __LWIP_PTP_OPT_H__ */

@@ -5,10 +5,9 @@
 
 #include "timer.h"
 
-#include <lwip/timeouts.h>
+#if LWIP_PTP || defined __DOXYGEN__
 
-#include "def/constants.h"
-#include "def/datatypes_private.h"
+#include <lwip/timeouts.h>
 
 /* An array to hold the various system timer handles. */
 //static struct lwip_cyclic_timer ptpdTimers[TIMER_ARRAY_SIZE];
@@ -51,6 +50,7 @@ void initTimer(void)
     }
 }
 
+
 /* Stop a specific timer */
 void timerStop(s32_t index)
 {
@@ -88,3 +88,5 @@ bool timerExpired(s32_t index)
 
     return true;
 }
+
+#endif /* LWIP_PTP || defined __DOXYGEN__ */

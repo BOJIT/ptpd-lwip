@@ -1,5 +1,5 @@
-#ifndef __PTPD_NET_H__
-#define __PTPD_NET_H__
+#ifndef __LWIP_PTP_NET_H__
+#define __LWIP_PTP_NET_H__
 
 /**
  * @file
@@ -42,4 +42,4 @@ ssize_t netSendPeerEvent(netPath_t *netPath, const octet_t *buf,
 ssize_t netSendPeerGeneral(netPath_t *netPath, const octet_t *buf, int16_t length);
 
 
-#endif /* __PTPD_NET_H__ */
+#endif /* __LWIP_PTP_NET_H__ */

@@ -1,6 +1,6 @@
 {
-    "name" : "ptpd-lwIP",
-    "description": "PTPd daemon based on lwIP.",
+    "name" : "lwip-ptp",
+    "description": "PTP daemon based on lwIP.",
     "keywords": "ptpd, lwIP, PTP, NTP",
     "authors": [
         {

@@ -7,13 +7,15 @@
  * @date 1 Oct 2020
  */
 
-#include "ptpd-lwip.h"
+#include "lwip-ptp.h"
+#include "def/datatypes_private.h"
+
+#if LWIP_PTP || defined __DOXYGEN__
 
 #include <lwip/sys.h>
 #include <lwip/api.h>
 #include <lwip/netbuf.h>
 
-#include "def/datatypes_private.h"
 #include "protocol.h"
 #include "sys_time.h"
 
@@ -84,15 +86,12 @@ static void ptpd_thread(void *args __attribute((unused))) {
 /// @todo remember that the PTP timestamps need to be written into the pbuf when
 // descriptors are processed!
 
-void ptpdInit(ptpFunctions_t *functions, u8_t priority)
+void ptpdInit(u8_t priority)
 {
     DEBUG_MESSAGE(DEBUG_TYPE_INFO, "PTPd initialising...");
 
-    /* Pass HAL function pointers to sys_time module */
-    initTimeFunctions(functions);
-
     /* Pass NET semaphore to driver */
-    ptpClock.netPath.ptpTxNotify = functions->ptpTxNotify;
+    // ptpClock.netPath.ptpTxNotify = functions->ptpTxNotify;
 
     // Create the alert queue mailbox.
     if(sys_mbox_new(&ptpClock.timerAlerts, 16) != ERR_OK) {
@@ -107,3 +106,13 @@ void ptpdInit(ptpFunctions_t *functions, u8_t priority)
     // Create the PTP daemon thread.
     sys_thread_new("ptpd", ptpd_thread, NULL, 1024, priority);
 }
+
+#else
+
+/* If LWIP_PTP is not defined map the init function to an empty function */
+void ptpdInit(u8_t priority)
+{
+    UNUSED(priority);
+}
+
+#endif /* LWIP_PTP || defined __DOXYGEN__ */

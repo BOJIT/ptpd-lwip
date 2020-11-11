@@ -1,5 +1,5 @@
-#ifndef __PTPD_BMC_H__
-#define __PTPD_BMC_H__
+#ifndef __LWIP_PTP_BMC_H__
+#define __LWIP_PTP_BMC_H__
 
 /**
  * @file
@@ -54,4 +54,4 @@ void s1(ptpClock_t *ptpClock, const msgHeader_t *header,
  */
 u8_t bmc(ptpClock_t *ptpClock);
 
-#endif /* __PTPD_BMC_H__ */
+#endif /* __LWIP_PTP_BMC_H__ */

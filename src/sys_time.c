@@ -2,27 +2,18 @@
 
 #include "sys_time.h"
 
+#if LWIP_PTP || defined __DOXYGEN__
+
 #include <stdlib.h>
 
+#include "lwip-ptp.h"
 #include "net.h"
-
-/* Stores function pointers to timer functions */
-static ptpFunctions_t ptpFunctions;
-
-/* Assign function pointers to sys_time functions */
-void initTimeFunctions(ptpFunctions_t *functions)
-{
-    ptpFunctions.ptpGetTime = functions->ptpGetTime;
-    ptpFunctions.ptpSetTime = functions->ptpSetTime;
-    ptpFunctions.ptpUpdateCoarse = functions->ptpUpdateCoarse;
-    ptpFunctions.ptpUpdateFine = functions->ptpUpdateFine;
-}
 
 /* get current PTP system time */
 void getTime(timeInternal_t *time)
 {
     timestamp_t timestamp;
-    ptpFunctions.ptpGetTime(&timestamp);
+    LWIP_PTP_GET_TIME(&timestamp);
     time->seconds = timestamp.secondsField.lsb;
     time->nanoseconds = timestamp.nanosecondsField;
 }
@@ -33,7 +24,7 @@ void setTime(const timeInternal_t *time)
     timestamp_t timestamp;
     timestamp.secondsField.lsb = time->seconds;
     timestamp.nanosecondsField = time->nanoseconds;
-    ptpFunctions.ptpSetTime(&timestamp);
+    LWIP_PTP_SET_TIME(&timestamp);
     DBG("resetting system clock to %d sec %d nsec\n", time->seconds, time->nanoseconds);
 }
 
@@ -54,7 +45,7 @@ void updateTime(const timeInternal_t *time)
     offset.nanosecondsField = abs(time->nanoseconds);
 
     /* Coarse update method */
-    ptpFunctions.ptpUpdateCoarse(&offset, sign);
+    LWIP_PTP_UPDATE_COARSE(&offset, sign);
     DBGV("updateTime: updated\n");
 }
 
@@ -69,7 +60,7 @@ bool adjFreq(s32_t adj)
         adj = -ADJ_FREQ_MAX;
 
     /* Fine update method */
-    ptpFunctions.ptpUpdateFine(adj);
+    LWIP_PTP_UPDATE_FINE(adj);
 
     return true;
 }
@@ -79,3 +70,5 @@ u32_t getRand(u32_t randMax)
 {
     return rand() % randMax;
 }
+
+#endif /* LWIP_PTP || defined __DOXYGEN__ */
