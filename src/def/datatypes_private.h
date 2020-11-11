@@ -11,6 +11,7 @@
 
 #include <stdbool.h>
 #include <lwip/pbuf.h>
+#include <lwip/sys.h>
 #include <lwip/udp.h>
 
 #include "opt.h"

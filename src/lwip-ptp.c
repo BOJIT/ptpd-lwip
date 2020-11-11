@@ -18,12 +18,16 @@
 
 #include "protocol.h"
 #include "sys_time.h"
+#include "timer.h"
 
 ptpClock_t ptpClock;
 runTimeOpts_t rtOpts;
 foreignMasterRecord_t ptpForeignRecords[DEFAULT_MAX_FOREIGN_RECORDS];
 
 /*---------------------------- Private Functions -----------------------------*/
+
+
+
 
 static void ptpd_thread(void *args __attribute((unused))) {
 
@@ -87,6 +91,15 @@ static void ptpd_thread(void *args __attribute((unused))) {
 /*----------------------------- Public Functions -----------------------------*/
 
 /**
+ * @brief function to call when a system timer has expired.
+ * @param idx index of the timer that has expired.
+ */
+void lwipPtpTimerExpired(u8_t idx)
+{
+    // timer_callback
+}
+
+/**
  * @brief Initialise PTP software stack.
  * @param priority rtos priority of main PTP handler thread.
  */
@@ -105,7 +118,7 @@ void lwipPtpInit(u8_t priority)
     }
 
     /* Create PTP Tx Timestamp Semaphore */
-    if (sys_sem_new(&ptpClock.netPath.ptpTxNotify, 0) != ERR_OK)
+    if (sys_sem_new(ptpClock.netPath.ptpTxNotify, 0) != ERR_OK)
         DEBUG_MESSAGE(DEBUG_TYPE_INFO, "Could not create tx timestamp smphr!");
         return;
 
@@ -125,12 +138,14 @@ void lwipPtpInit(u8_t priority)
  */
 void lwipPtpTxNotify(void)
 {
-    sys_sem_signal(&ptpClock.netPath.ptpTxNotify);
+    sys_sem_signal(ptpClock.netPath.ptpTxNotify);
 }
 
 /*----------------------------------------------------------------------------*/
 
 #else
+
+void lwipPtpTimerExpired(u8_t idx) { UNUSED(idx); }
 
 /* If LWIP_PTP is not defined map the init function to an empty function */
 void lwipPtpInit(u8_t priority) { UNUSED(priority); }

@@ -1,23 +1,17 @@
 /* timer.c */
 
-/// @todo test practicality of lwIP's built-in timeout engine
-/// THIS WHOLE SECTION SHOULD BE REPLACED WITH SEMAPHORES or Ticks
+/// @todo merge the entire timer file into lwip-ptp.c, as it is an OS-abstraction.
 
 #include "timer.h"
 
 #if LWIP_PTP || defined __DOXYGEN__
 
-#include <lwip/timeouts.h>
-
-/* An array to hold the various system timer handles. */
-//static struct lwip_cyclic_timer ptpdTimers[TIMER_ARRAY_SIZE];
-static int ptpdTimersArgs[TIMER_ARRAY_SIZE];
 static bool ptpdTimersExpired[TIMER_ARRAY_SIZE];
 
 /* mark the relevant timer as expired, then unblock the main task */
 /// @todo callback should use a mutex to ensure thread safety. Need to check if
 /// this is required for mailbox message implementations.
-static void timer_callback(void *arg)
+void timer_callback(void *arg)
 {
 
     /// @todo I don't think this is thread-safe. Replace with other rtos IPC

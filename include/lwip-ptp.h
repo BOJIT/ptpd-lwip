@@ -13,7 +13,16 @@
 #include <lwip/arch.h>
 #include <lwip/sys.h>
 
+#include <stdbool.h>
+
 #include "def/datatypes_public.h"
+
+/*------------------------------ PUBLIC MACROS -------------------------------*/
+
+/**
+ * @brief number of timers that LWIP_PTP uses. Can be used by the driver.
+ */
+#define LWIP_PTP_NUM_TIMERS         6
 
 /*----------------------------- PUBLIC FUNCTIONS -----------------------------*/
 
@@ -41,6 +50,36 @@ void LWIP_PTP_UPDATE_COARSE(const timestamp_t*, s8_t);
  * @param adj adjustment addend (for fine adjustment of system clock frequency).
  */
 void LWIP_PTP_UPDATE_FINE(s32_t);
+
+/**
+ * @brief Initialise system timers.
+ * @param exists if false, timers don't exist and need to be created/allocated.
+ * If true, timers do exist and should be destroyed/deallocated.
+ */
+void LWIP_PTP_INIT_TIMERS(bool);
+
+/**
+ * @brief Start a system timer.
+ * @param idx index of the timer to start. Note that the PTP stack checks
+ * if idx exceeds LWIP_PTP_NUM_TIMERS, so the user function
+ * does not need to do this.
+ * @param interval length of the timer in milliseconds.
+ */
+void LWIP_PTP_START_TIMER(u8_t, u32_t);
+
+/**
+ * @brief Stop a system timer.
+ * @param idx index of the timer to stop. Note that the PTP stack will only
+ * let this function be called if the timer is active, so this does not need
+ * to be checked by the user application.
+ */
+void LWIP_PTP_STOP_TIMER(u8_t);
+
+/**
+ * @brief function to call when a system timer has expired.
+ * @param idx index of the timer that has expired.
+ */
+void lwipPtpTimerExpired(u8_t idx);
 
 /**
  * @brief Initialise PTP software stack.

@@ -55,6 +55,32 @@
         #error "No 'LWIP_PTP_UPDATE_FINE' function configured in lwipopts.h!"
     #endif /* !defined LWIP_PTP_UPDATE_FINE || defined __DOXYGEN__ */
 
+    /**
+     * LWIP_PTP_INIT_TIMERS
+     * @brief function used to initialise system timers for PTP timeouts.
+     */
+    #if !defined LWIP_PTP_INIT_TIMERS || defined __DOXYGEN__
+        #error "No 'LWIP_PTP_INIT_TIMERS' function configured in lwipopts.h!"
+    #endif /* !defined LWIP_PTP_INIT_TIMERS || defined __DOXYGEN__ */
+
+    /**
+     * LWIP_PTP_START_TIMER
+     * @brief function used to start a timer with a specified timeout/callback.
+     */
+    #if !defined LWIP_PTP_START_TIMER || defined __DOXYGEN__
+        #error "No 'LWIP_PTP_START_TIMER' function configured in lwipopts.h!"
+    #endif /* !defined LWIP_PTP_START_TIMER || defined __DOXYGEN__ */
+
+    /**
+     * LWIP_PTP_STOP_TIMER
+     * @brief function used to stop a timer. Note that the stack will only
+     * let this function be called if the timer is active, so this does
+     * not need to be checked by the user application.
+     */
+    #if !defined LWIP_PTP_STOP_TIMER || defined __DOXYGEN__
+        #error "No 'LWIP_PTP_STOP_TIMER' function configured in lwipopts.h!"
+    #endif /* !defined LWIP_PTP_STOP_TIMER || defined __DOXYGEN__ */
+
 #endif /* LWIP_PTP || defined __DOXYGEN__ */
 
 
@@ -258,8 +284,7 @@ enum
     SYNC_INTERVAL_TIMER,/**<\brief Timer handling Interval between master sends two Syncs messages */
     ANNOUNCE_RECEIPT_TIMER,/**<\brief Timer handling announce receipt timeout */
     ANNOUNCE_INTERVAL_TIMER, /**<\brief Timer handling interval before master sends two announce messages */
-    QUALIFICATION_TIMEOUT,
-    TIMER_ARRAY_SIZE  /* this one is non-spec */
+    QUALIFICATION_TIMEOUT
 };
 
 /**
