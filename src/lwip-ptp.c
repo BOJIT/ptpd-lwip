@@ -23,6 +23,7 @@ ptpClock_t ptpClock;
 runTimeOpts_t rtOpts;
 foreignMasterRecord_t ptpForeignRecords[DEFAULT_MAX_FOREIGN_RECORDS];
 
+/*---------------------------- Private Functions -----------------------------*/
 
 static void ptpd_thread(void *args __attribute((unused))) {
 
@@ -83,15 +84,15 @@ static void ptpd_thread(void *args __attribute((unused))) {
     }
 }
 
-/// @todo remember that the PTP timestamps need to be written into the pbuf when
-// descriptors are processed!
+/*----------------------------- Public Functions -----------------------------*/
 
-void ptpdInit(u8_t priority)
+/**
+ * @brief Initialise PTP software stack.
+ * @param priority rtos priority of main PTP handler thread.
+ */
+void lwipPtpInit(u8_t priority)
 {
     DEBUG_MESSAGE(DEBUG_TYPE_INFO, "PTPd initialising...");
-
-    /* Pass NET semaphore to driver */
-    // ptpClock.netPath.ptpTxNotify = functions->ptpTxNotify;
 
     // Create the alert queue mailbox.
     if(sys_mbox_new(&ptpClock.timerAlerts, 16) != ERR_OK) {
@@ -103,16 +104,38 @@ void ptpdInit(u8_t priority)
         return;
     }
 
+    /* Create PTP Tx Timestamp Semaphore */
+    if (sys_sem_new(&ptpClock.netPath.ptpTxNotify, 0) != ERR_OK)
+        DEBUG_MESSAGE(DEBUG_TYPE_INFO, "Could not create tx timestamp smphr!");
+        return;
+
     // Create the PTP daemon thread.
     sys_thread_new("ptpd", ptpd_thread, NULL, 1024, priority);
 }
 
+/**
+ * @brief Notify PTP stack that a transmitted packet's timestamp is
+ * ready to be received.
+ * For non-DMA-capable Ethernet hardware, this semaphore can be called
+ * immediately on sending of a timestamped packet. However, for DMA-capable
+ * Ethernet hardware, this may need to be called by a TX interrupt.
+ * This only needs to be called on packets where the pbuf's timestamp fields
+ * are all 'ones' (UINT32_MAX), as this indicates that a timestamp is expected
+ * for this packet.
+ */
+void lwipPtpTxNotify(void)
+{
+    sys_sem_signal(&ptpClock.netPath.ptpTxNotify);
+}
+
+/*----------------------------------------------------------------------------*/
+
 #else
 
 /* If LWIP_PTP is not defined map the init function to an empty function */
-void ptpdInit(u8_t priority)
-{
-    UNUSED(priority);
-}
+void lwipPtpInit(u8_t priority) { UNUSED(priority); }
+
+/* If LWIP_PTP is not defined map the notify function to an empty function */
+void lwipPtpTxNotify(void) {}
 
 #endif /* LWIP_PTP || defined __DOXYGEN__ */

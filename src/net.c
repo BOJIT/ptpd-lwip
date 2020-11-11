@@ -206,7 +206,7 @@ static ssize_t netRecv(octet_t *buf, timeInternal_t *time, packetHandler_t *hand
 
     /* Copy across timestamp if required. */
     if (time != NULL) {
-        #if LWIP_PTP
+        #if LWIP_PTP /** @todo this is potentially redundant */
             time->seconds = p->tv_sec;
             time->nanoseconds = p->tv_nsec;
         #else

@@ -1,3 +1,6 @@
+#ifndef __LWIP_PTP_H__
+#define __LWIP_PTP_H__
+
 /**
  * @file
  * @brief lwip_ptp public interface
@@ -7,8 +10,8 @@
  * @date 1 Oct 2020
  */
 
-#ifndef __LWIP_PTP_H__
-#define __LWIP_PTP_H__
+#include <lwip/arch.h>
+#include <lwip/sys.h>
 
 #include "def/datatypes_public.h"
 
@@ -41,7 +44,20 @@ void LWIP_PTP_UPDATE_FINE(s32_t);
 
 /**
  * @brief Initialise PTP software stack.
+ * @param priority rtos priority of main PTP handler thread.
  */
-void ptpdInit(u8_t priority);
+void lwipPtpInit(u8_t priority);
+
+/**
+ * @brief Notify PTP stack that a transmitted packet's timestamp is
+ * ready to be received.
+ * For non-DMA-capable Ethernet hardware, this semaphore can be called
+ * immediately on sending of a timestamped packet. However, for DMA-capable
+ * Ethernet hardware, this may need to be called by a TX interrupt.
+ * This only needs to be called on packets where the pbuf's timestamp fields
+ * are all 'ones' (UINT32_MAX), as this indicates that a timestamp is expected
+ * for this packet.
+ */
+void lwipPtpTxNotify(void);
 
 #endif /* __LWIP_PTP_H__ */

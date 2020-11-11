@@ -15,6 +15,8 @@ static int ptpdTimersArgs[TIMER_ARRAY_SIZE];
 static bool ptpdTimersExpired[TIMER_ARRAY_SIZE];
 
 /* mark the relevant timer as expired, then unblock the main task */
+/// @todo callback should use a mutex to ensure thread safety. Need to check if
+/// this is required for mailbox message implementations.
 static void timer_callback(void *arg)
 {
 
