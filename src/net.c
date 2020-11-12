@@ -19,7 +19,7 @@ static void netRecvCallback(void *arg, struct udp_pcb *pcb, struct pbuf *p,
     (void)(pcb);    // UNUSED
     (void)(port);   // UNUSED
 
-    DEBUG_MESSAGE(DEBUG_TYPE_INFO, "Packet Arrived!");
+    // DEBUG_MESSAGE(DEBUG_TYPE_INFO, "Packet Arrived!");
 
     packetHandler_t *handler = (packetHandler_t *)arg;
 

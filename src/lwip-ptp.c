@@ -32,6 +32,8 @@ sys_mbox_t ptpAlert;
 
 static void ptpd_thread(void *args __attribute((unused))) {
 
+    DEBUG_MESSAGE(DEBUG_TYPE_INFO, "PTPd thread started...");
+
     // Initialize run-time options to default values.
     rtOpts.announceInterval = DEFAULT_ANNOUNCE_INTERVAL;
     rtOpts.syncInterval = DEFAULT_SYNC_INTERVAL;
@@ -116,9 +118,10 @@ void lwipPtpInit(u8_t priority)
     }
 
     /* Create PTP Tx Timestamp Semaphore */
-    if (sys_sem_new(ptpClock.netPath.ptpTxNotify, 0) != ERR_OK)
+    if(sys_sem_new(ptpClock.netPath.ptpTxNotify, 0) != ERR_OK) {
         DEBUG_MESSAGE(DEBUG_TYPE_INFO, "Could not create tx timestamp smphr!");
         return;
+    }
 
     // Create the PTP daemon thread.
     sys_thread_new("ptpd", ptpd_thread, NULL, 2048, priority);
