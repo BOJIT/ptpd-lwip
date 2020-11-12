@@ -9,6 +9,9 @@
 
 /// @todo Horrendously inefficient PBUF copying about 3 times! Fix soon.
 
+// TEMPORARY - this alert system will eventually be restructured.
+extern sys_mbox_t ptpAlert;
+
 /* Process an incoming message */
 static void netRecvCallback(void *arg, struct udp_pcb *pcb, struct pbuf *p,
                                                 const ip_addr_t *addr, u16_t port)
@@ -43,8 +46,9 @@ static void netRecvCallback(void *arg, struct udp_pcb *pcb, struct pbuf *p,
     }
 
     /* Alert the PTP thread there is now something to do. */
-    /// @todo sort how alert queues work...
-    // ptpd_alert(); /// @todo fix dependencies later
+    if(sys_mbox_trypost(&ptpAlert, NULL) != ERR_OK) {
+        DBGVV("Mailbox Full!");
+    }
 }
 
 /* Process an outgoing message */

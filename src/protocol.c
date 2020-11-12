@@ -10,7 +10,7 @@
 #include "net.h"
 #include "servo.h"
 #include "sys_time.h"
-#include "timer.h"
+#include "lwip-ptp.h"
 
 /* Local (static) function declarations */
 
@@ -120,9 +120,9 @@ void toState(ptpClock_t *ptpClock, u8_t state)
         case PTP_MASTER:
 
             initClock(ptpClock);
-            timerStop(SYNC_INTERVAL_TIMER);
-            timerStop(ANNOUNCE_INTERVAL_TIMER);
-            timerStop(PDELAYREQ_INTERVAL_TIMER);
+            LWIP_PTP_STOP_TIMER(SYNC_INTERVAL_TIMER);
+            LWIP_PTP_STOP_TIMER(ANNOUNCE_INTERVAL_TIMER);
+            LWIP_PTP_STOP_TIMER(PDELAYREQ_INTERVAL_TIMER);
             break;
 
         case PTP_UNCALIBRATED:
@@ -131,13 +131,13 @@ void toState(ptpClock_t *ptpClock, u8_t state)
             if (state == PTP_UNCALIBRATED || state == PTP_SLAVE) {
                 break;
             }
-            timerStop(ANNOUNCE_RECEIPT_TIMER);
+            LWIP_PTP_STOP_TIMER(ANNOUNCE_RECEIPT_TIMER);
             switch (ptpClock->portDS.delayMechanism) {
                 case E2E:
-                    timerStop(DELAYREQ_INTERVAL_TIMER);
+                    LWIP_PTP_STOP_TIMER(DELAYREQ_INTERVAL_TIMER);
                     break;
                 case P2P:
-                    timerStop(PDELAYREQ_INTERVAL_TIMER);
+                    LWIP_PTP_STOP_TIMER(PDELAYREQ_INTERVAL_TIMER);
                     break;
                 default:
                     /* none */
@@ -150,20 +150,20 @@ void toState(ptpClock_t *ptpClock, u8_t state)
         case PTP_PASSIVE:
 
             initClock(ptpClock);
-            timerStop(PDELAYREQ_INTERVAL_TIMER);
-            timerStop(ANNOUNCE_RECEIPT_TIMER);
+            LWIP_PTP_STOP_TIMER(PDELAYREQ_INTERVAL_TIMER);
+            LWIP_PTP_STOP_TIMER(ANNOUNCE_RECEIPT_TIMER);
             break;
 
         case PTP_LISTENING:
 
             initClock(ptpClock);
-            timerStop(ANNOUNCE_RECEIPT_TIMER);
+            LWIP_PTP_STOP_TIMER(ANNOUNCE_RECEIPT_TIMER);
             break;
 
         case PTP_PRE_MASTER:
 
             initClock(ptpClock);
-            timerStop(QUALIFICATION_TIMEOUT);
+            LWIP_PTP_STOP_TIMER(QUALIFICATION_TIMEOUT);
             break;
 
         default:
@@ -192,7 +192,7 @@ void toState(ptpClock_t *ptpClock, u8_t state)
 
         case PTP_LISTENING:
 
-            timerStart(ANNOUNCE_RECEIPT_TIMER, (ptpClock->portDS.announceReceiptTimeout) * (pow2ms(ptpClock->portDS.logAnnounceInterval)));
+            LWIP_PTP_START_TIMER(ANNOUNCE_RECEIPT_TIMER, (ptpClock->portDS.announceReceiptTimeout) * (pow2ms(ptpClock->portDS.logAnnounceInterval)));
             ptpClock->portDS.portState = PTP_LISTENING;
             ptpClock->recommendedState = PTP_LISTENING;
             break;
@@ -200,7 +200,7 @@ void toState(ptpClock_t *ptpClock, u8_t state)
         case PTP_PRE_MASTER:
 
             /* If you implement not ordinary clock, you can manage this code */
-            /* timerStart(QUALIFICATION_TIMEOUT, pow2ms(DEFAULT_QUALIFICATION_TIMEOUT));
+            /* LWIP_PTP_START_TIMER(QUALIFICATION_TIMEOUT, pow2ms(DEFAULT_QUALIFICATION_TIMEOUT));
             ptpClock->portDS.portState = PTP_PRE_MASTER;
             break;
             */
@@ -208,16 +208,16 @@ void toState(ptpClock_t *ptpClock, u8_t state)
         case PTP_MASTER:
 
             ptpClock->portDS.logMinDelayReqInterval = DEFAULT_DELAYREQ_INTERVAL; /* it may change during slave state */
-            timerStart(SYNC_INTERVAL_TIMER, pow2ms(ptpClock->portDS.logSyncInterval));
+            LWIP_PTP_START_TIMER(SYNC_INTERVAL_TIMER, pow2ms(ptpClock->portDS.logSyncInterval));
             DBG("SYNC INTERVAL TIMER : %d \n", pow2ms(ptpClock->portDS.logSyncInterval));
-            timerStart(ANNOUNCE_INTERVAL_TIMER, pow2ms(ptpClock->portDS.logAnnounceInterval));
+            LWIP_PTP_START_TIMER(ANNOUNCE_INTERVAL_TIMER, pow2ms(ptpClock->portDS.logAnnounceInterval));
 
             switch (ptpClock->portDS.delayMechanism) {
                 case E2E:
                     /* none */
                     break;
                 case P2P:
-                    timerStart(PDELAYREQ_INTERVAL_TIMER, getRand(pow2ms(ptpClock->portDS.logMinPdelayReqInterval) + 1));
+                    LWIP_PTP_START_TIMER(PDELAYREQ_INTERVAL_TIMER, getRand(pow2ms(ptpClock->portDS.logMinPdelayReqInterval) + 1));
                     break;
                 default:
                     break;
@@ -229,9 +229,9 @@ void toState(ptpClock_t *ptpClock, u8_t state)
 
         case PTP_PASSIVE:
 
-            timerStart(ANNOUNCE_RECEIPT_TIMER, (ptpClock->portDS.announceReceiptTimeout)*(pow2ms(ptpClock->portDS.logAnnounceInterval)));
+            LWIP_PTP_START_TIMER(ANNOUNCE_RECEIPT_TIMER, (ptpClock->portDS.announceReceiptTimeout)*(pow2ms(ptpClock->portDS.logAnnounceInterval)));
             if (ptpClock->portDS.delayMechanism == P2P) {
-                timerStart(PDELAYREQ_INTERVAL_TIMER, getRand(pow2ms(ptpClock->portDS.logMinPdelayReqInterval + 1)));
+                LWIP_PTP_START_TIMER(PDELAYREQ_INTERVAL_TIMER, getRand(pow2ms(ptpClock->portDS.logMinPdelayReqInterval + 1)));
             }
             ptpClock->portDS.portState = PTP_PASSIVE;
 
@@ -239,13 +239,13 @@ void toState(ptpClock_t *ptpClock, u8_t state)
 
         case PTP_UNCALIBRATED:
 
-            timerStart(ANNOUNCE_RECEIPT_TIMER, (ptpClock->portDS.announceReceiptTimeout)*(pow2ms(ptpClock->portDS.logAnnounceInterval)));
+            LWIP_PTP_START_TIMER(ANNOUNCE_RECEIPT_TIMER, (ptpClock->portDS.announceReceiptTimeout)*(pow2ms(ptpClock->portDS.logAnnounceInterval)));
             switch (ptpClock->portDS.delayMechanism) {
                 case E2E:
-                    timerStart(DELAYREQ_INTERVAL_TIMER, getRand(pow2ms(ptpClock->portDS.logMinDelayReqInterval + 1)));
+                    LWIP_PTP_START_TIMER(DELAYREQ_INTERVAL_TIMER, getRand(pow2ms(ptpClock->portDS.logMinDelayReqInterval + 1)));
                     break;
                 case P2P:
-                    timerStart(PDELAYREQ_INTERVAL_TIMER, getRand(pow2ms(ptpClock->portDS.logMinPdelayReqInterval + 1)));
+                    LWIP_PTP_START_TIMER(PDELAYREQ_INTERVAL_TIMER, getRand(pow2ms(ptpClock->portDS.logMinPdelayReqInterval + 1)));
                     break;
                 default:
                     /* none */
@@ -275,7 +275,7 @@ static bool doInit(ptpClock_t *ptpClock)
 {
     DBG("manufacturerIdentity: %s\n", LWIP_PTP_MANUFACTURER_ID);
 
-    /* initialize networking */
+    /* deallocate old network resources */
     netShutdown(&ptpClock->netPath);
 
     if (!netInit(&ptpClock->netPath, ptpClock)) {
@@ -285,7 +285,7 @@ static bool doInit(ptpClock_t *ptpClock)
     else {
         /* initialize other stuff */
         initData(ptpClock);
-        initTimer();
+        LWIP_PTP_INIT_TIMERS();
         initClock(ptpClock);
         m1(ptpClock);
         msgPackHeader(ptpClock, ptpClock->msgObuf);
@@ -339,7 +339,7 @@ void doState(ptpClock_t *ptpClock)
         case PTP_MASTER:
             switch (ptpClock->portDS.portState) {
                 case PTP_PRE_MASTER:
-                    if (timerExpired(QUALIFICATION_TIMEOUT)) toState(ptpClock, PTP_MASTER);
+                    if (LWIP_PTP_CHECK_TIMER(QUALIFICATION_TIMEOUT)) toState(ptpClock, PTP_MASTER);
                     break;
                 case PTP_MASTER:
                     break;
@@ -439,7 +439,7 @@ void doState(ptpClock_t *ptpClock)
         case PTP_SLAVE:
         case PTP_PASSIVE:
 
-            if (timerExpired(ANNOUNCE_RECEIPT_TIMER)) {
+            if (LWIP_PTP_CHECK_TIMER(ANNOUNCE_RECEIPT_TIMER)) {
                 DBGV("event ANNOUNCE_RECEIPT_TIMEOUT_EXPIRES for state %s\n", stateString(ptpClock->portDS.portState));
                 ptpClock->foreignMasterDS.count = 0;
                 ptpClock->foreignMasterDS.i = 0;
@@ -463,12 +463,12 @@ void doState(ptpClock_t *ptpClock)
 
         case PTP_MASTER:
 
-            if (timerExpired(SYNC_INTERVAL_TIMER)) {
+            if (LWIP_PTP_CHECK_TIMER(SYNC_INTERVAL_TIMER)) {
                 DBGV("event SYNC_INTERVAL_TIMEOUT_EXPIRES for state PTP_MASTER\n");
                 issueSync(ptpClock);
             }
 
-            if (timerExpired(ANNOUNCE_INTERVAL_TIMER)) {
+            if (LWIP_PTP_CHECK_TIMER(ANNOUNCE_INTERVAL_TIMER)) {
                 DBGV("event ANNOUNCE_INTERVAL_TIMEOUT_EXPIRES for state PTP_MASTER\n");
                 issueAnnounce(ptpClock);
             }
@@ -655,7 +655,7 @@ static void handleAnnounce(ptpClock_t *ptpClock, bool isFromSelf)
             if (isFromCurrentParent) {
                     s1(ptpClock, &ptpClock->msgTmpHeader, &ptpClock->msgTmp.announce);
                     /* Reset  Timer handling Announce receipt timeout */
-                    timerStart(ANNOUNCE_RECEIPT_TIMER, (ptpClock->portDS.announceReceiptTimeout) * (pow2ms(ptpClock->portDS.logAnnounceInterval)));
+                    LWIP_PTP_START_TIMER(ANNOUNCE_RECEIPT_TIMER, (ptpClock->portDS.announceReceiptTimeout) * (pow2ms(ptpClock->portDS.logAnnounceInterval)));
             }
             else {
                 DBGV("handleAnnounce: from another foreign master\n");
@@ -666,7 +666,7 @@ static void handleAnnounce(ptpClock_t *ptpClock, bool isFromSelf)
             break;
 
         case PTP_PASSIVE:
-            timerStart(ANNOUNCE_RECEIPT_TIMER, (ptpClock->portDS.announceReceiptTimeout)*(pow2ms(ptpClock->portDS.logAnnounceInterval)));
+            LWIP_PTP_START_TIMER(ANNOUNCE_RECEIPT_TIMER, (ptpClock->portDS.announceReceiptTimeout)*(pow2ms(ptpClock->portDS.logAnnounceInterval)));
             // fall through
         case PTP_MASTER:
         case PTP_PRE_MASTER:
@@ -1245,8 +1245,8 @@ static void issueDelayReqTimerExpired(ptpClock_t *ptpClock)
                 break;
             }
 
-            if (timerExpired(DELAYREQ_INTERVAL_TIMER)) {
-                timerStart(DELAYREQ_INTERVAL_TIMER, getRand(pow2ms(ptpClock->portDS.logMinDelayReqInterval + 1)));
+            if (LWIP_PTP_CHECK_TIMER(DELAYREQ_INTERVAL_TIMER)) {
+                LWIP_PTP_START_TIMER(DELAYREQ_INTERVAL_TIMER, getRand(pow2ms(ptpClock->portDS.logMinDelayReqInterval + 1)));
                 DBGV("event DELAYREQ_INTERVAL_TIMEOUT_EXPIRES\n");
                 issueDelayReq(ptpClock);
             }
@@ -1255,8 +1255,8 @@ static void issueDelayReqTimerExpired(ptpClock_t *ptpClock)
 
         case P2P:
 
-            if (timerExpired(PDELAYREQ_INTERVAL_TIMER)) {
-                timerStart(PDELAYREQ_INTERVAL_TIMER, getRand(pow2ms(ptpClock->portDS.logMinPdelayReqInterval + 1)));
+            if (LWIP_PTP_CHECK_TIMER(PDELAYREQ_INTERVAL_TIMER)) {
+                LWIP_PTP_START_TIMER(PDELAYREQ_INTERVAL_TIMER, getRand(pow2ms(ptpClock->portDS.logMinPdelayReqInterval + 1)));
                 DBGV("event PDELAYREQ_INTERVAL_TIMEOUT_EXPIRES\n");
                 issuePDelayReq(ptpClock);
             }

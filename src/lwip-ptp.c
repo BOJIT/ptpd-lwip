@@ -18,11 +18,12 @@
 
 #include "protocol.h"
 #include "sys_time.h"
-#include "timer.h"
 
 ptpClock_t ptpClock;
 runTimeOpts_t rtOpts;
 foreignMasterRecord_t ptpForeignRecords[DEFAULT_MAX_FOREIGN_RECORDS];
+
+sys_mbox_t ptpAlert;
 
 /*---------------------------- Private Functions -----------------------------*/
 
@@ -81,10 +82,8 @@ static void ptpd_thread(void *args __attribute((unused))) {
         // Process the current state.
         doState(&ptpClock);
 
-        /// @todo THIS NEEDS TO GO!!!
         // Wait up to 100ms for something to do, then do something anyway.
-        if(sys_arch_mbox_tryfetch(&ptpClock.timerAlerts, &msg) == SYS_MBOX_EMPTY)
-            sys_arch_mbox_fetch(&ptpClock.packetAlerts, &msg, 100); // THIS LOGIC IS FLAWED!!!
+        sys_arch_mbox_fetch(&ptpAlert, &msg, 100);
     }
 }
 
@@ -94,9 +93,12 @@ static void ptpd_thread(void *args __attribute((unused))) {
  * @brief function to call when a system timer has expired.
  * @param idx index of the timer that has expired.
  */
-void lwipPtpTimerExpired(u8_t idx)
+void lwipPtpTimerExpired(u32_t idx)
 {
-    // timer_callback
+    UNUSED(idx);
+    if(sys_mbox_trypost(&ptpAlert, NULL) != ERR_OK) {
+        DBGVV("Mailbox Full!");
+    }
 }
 
 /**
@@ -108,11 +110,7 @@ void lwipPtpInit(u8_t priority)
     DEBUG_MESSAGE(DEBUG_TYPE_INFO, "PTPd initialising...");
 
     // Create the alert queue mailbox.
-    if(sys_mbox_new(&ptpClock.timerAlerts, 16) != ERR_OK) {
-        DEBUG_MESSAGE(DEBUG_TYPE_INFO, "Could not create alert queue");
-        return;
-    }
-    if(sys_mbox_new(&ptpClock.packetAlerts, 16) != ERR_OK) {
+    if(sys_mbox_new(&ptpAlert, 16) != ERR_OK) {
         DEBUG_MESSAGE(DEBUG_TYPE_INFO, "Could not create alert queue");
         return;
     }
@@ -123,7 +121,7 @@ void lwipPtpInit(u8_t priority)
         return;
 
     // Create the PTP daemon thread.
-    sys_thread_new("ptpd", ptpd_thread, NULL, 1024, priority);
+    sys_thread_new("ptpd", ptpd_thread, NULL, 2048, priority);
 }
 
 /**
@@ -145,7 +143,7 @@ void lwipPtpTxNotify(void)
 
 #else
 
-void lwipPtpTimerExpired(u8_t idx) { UNUSED(idx); }
+void lwipPtpTimerExpired(u32_t idx) { UNUSED(idx); }
 
 /* If LWIP_PTP is not defined map the init function to an empty function */
 void lwipPtpInit(u8_t priority) { UNUSED(priority); }

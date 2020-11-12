@@ -73,13 +73,19 @@
 
     /**
      * LWIP_PTP_STOP_TIMER
-     * @brief function used to stop a timer. Note that the stack will only
-     * let this function be called if the timer is active, so this does
-     * not need to be checked by the user application.
+     * @brief function used to stop a timer.
      */
     #if !defined LWIP_PTP_STOP_TIMER || defined __DOXYGEN__
         #error "No 'LWIP_PTP_STOP_TIMER' function configured in lwipopts.h!"
     #endif /* !defined LWIP_PTP_STOP_TIMER || defined __DOXYGEN__ */
+
+    /**
+     * LWIP_PTP_CHECK_TIMER
+     * @brief function used to check if a timer has expired.
+     */
+    #if !defined LWIP_PTP_CHECK_TIMER || defined __DOXYGEN__
+        #error "No 'LWIP_PTP_CHECK_TIMER' function configured in lwipopts.h!"
+    #endif /* !defined LWIP_PTP_CHECK_TIMER || defined __DOXYGEN__ */
 
 #endif /* LWIP_PTP || defined __DOXYGEN__ */
 
@@ -383,10 +389,14 @@ enum
 };
 
 /*--------------------------------- Debugging --------------------------------*/
+#define PTPD_DBG
+#define PTPD_DBGVV
+#define PTPD_DBGV
+#define PTPD_ERR
 
 #ifdef PTPD_DBG
 #define PTPD_ERR
-#define DBG(...)  { TimeInternal tmpTime; getTime(&tmpTime); printf("(D %d.%09d) ", tmpTime.seconds, tmpTime.nanoseconds); printf(__VA_ARGS__); }
+#define DBG(...)  printf(__VA_ARGS__);
 #else
 #define DBG(...)
 #endif
@@ -395,7 +405,7 @@ enum
 #define PTPD_DBGV
 #define PTPD_DBG
 #define PTPD_ERR
-#define DBGVV(...) printf("(V) " __VA_ARGS__)
+#define DBGVV(...) printf(__VA_ARGS__);
 #else
 #define DBGVV(...)
 #endif
@@ -403,13 +413,13 @@ enum
 #ifdef PTPD_DBGV
 #define PTPD_DBG
 #define PTPD_ERR
-#define DBGV(...)  { TimeInternal tmpTime; getTime(&tmpTime); printf("(d %d.%09d) ", tmpTime.seconds, tmpTime.nanoseconds); printf(__VA_ARGS__); }
+#define DBGV(...) printf(__VA_ARGS__);
 #else
 #define DBGV(...)
 #endif
 
 #ifdef PTPD_ERR
-#define ERROR(...)  { TimeInternal tmpTime; getTime(&tmpTime); printf("(E %d.%09d) ", tmpTime.seconds, tmpTime.nanoseconds); printf(__VA_ARGS__); }
+#define ERROR(...) printf(__VA_ARGS__);
 /* #define ERROR(...)  { printf("(E) "); printf(__VA_ARGS__); } */
 #else
 #define ERROR(...)

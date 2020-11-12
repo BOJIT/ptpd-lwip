@@ -518,9 +518,6 @@ typedef struct {
 
     netPath_t netPath;
 
-    sys_mbox_t timerAlerts;
-    sys_mbox_t packetAlerts;
-
     runTimeOpts_t* rtOpts;
 } ptpClock_t;
 
