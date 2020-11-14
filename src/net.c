@@ -31,7 +31,7 @@ static void netRecvCallback(void *arg, struct udp_pcb *pcb, struct pbuf *p,
     handler->inboxBuf[bufIdx].destAddr.addr = addr->addr;
 
     if(sys_mbox_trypost(&handler->inbox, &handler->inboxBuf[bufIdx]) != ERR_OK) {
-        ERROR("netRecvEventCallback: queue full\n");
+        ERROR("netRecvEventCallback: queue full - %lu\n", handler);
         pbuf_free(p);
         handler->inboxBuf[bufIdx] = packetTmp;
         return;
@@ -47,7 +47,7 @@ static void netRecvCallback(void *arg, struct udp_pcb *pcb, struct pbuf *p,
 
     /* Alert the PTP thread there is now something to do. */
     if(sys_mbox_trypost(&ptpAlert, NULL) != ERR_OK) {
-        DBGVV("Mailbox Full!");
+        DBGVV("netRecvEventCallback: Mailbox Full!\n");
     }
 }
 
@@ -71,11 +71,14 @@ static void netSendCallback(void *arg)
 }
 
 /* Initialize network handler */
-static void netHandlerInit(packetHandler_t *handler, ip_addr_t *defaultAddr)
+static void netHandlerInit(packetHandler_t *handler, ip_addr_t *defaultAddr,
+                                                                    u16_t port)
 {
     /* Initialise mailboxes */
     sys_mbox_new(&handler->inbox, PBUF_QUEUE_SIZE);
     sys_mbox_new(&handler->outbox, PBUF_QUEUE_SIZE);
+
+    DBGV("netHandlerInit: handler - %lu\n", handler);
 
     /* Create UDP PCB */
     handler->pcb = udp_new();
@@ -89,7 +92,7 @@ static void netHandlerInit(packetHandler_t *handler, ip_addr_t *defaultAddr)
 
     /* Establish the appropriate UDP bindings/connections for events. */
     udp_recv(handler->pcb, netRecvCallback, handler);
-    udp_bind(handler->pcb, IP_ADDR_ANY, PTP_EVENT_PORT);
+    udp_bind(handler->pcb, IP_ADDR_ANY, port);
 }
 
 /* Shutdown network handler */
@@ -127,8 +130,8 @@ bool netInit(netPath_t *netPath, ptpClock_t *ptpClock)
     igmp_joingroup(&netif_default->ip_addr, &netPath->peerMulticastAddr);
 
     /* Initialize the buffer queues. */
-    netHandlerInit(&netPath->eventHandler, &netPath->multicastAddr);
-    netHandlerInit(&netPath->generalHandler, &netPath->multicastAddr);
+    netHandlerInit(&netPath->eventHandler, &netPath->multicastAddr, PTP_EVENT_PORT);
+    netHandlerInit(&netPath->generalHandler, &netPath->multicastAddr, PTP_GENERAL_PORT);
 
     /* Return a success code. */
     UNLOCK_TCPIP_CORE();
@@ -143,10 +146,16 @@ void netShutdown(netPath_t *netPath)
     DBG("netShutdown\n");
 
     /* leave multicast group */
-    igmp_leavegroup(IP_ADDR_ANY, &netPath->multicastAddr);
+    if(netPath->multicastAddr.addr != 0) {
+        igmp_leavegroup(IP_ADDR_ANY, &netPath->multicastAddr);
+        netPath->multicastAddr.addr = 0;
+    }
 
-    /* leave multicast group */
-    igmp_leavegroup(IP_ADDR_ANY, &netPath->peerMulticastAddr);
+    /* leave peer multicast group */
+    if(netPath->peerMulticastAddr.addr != 0) {
+        igmp_leavegroup(IP_ADDR_ANY, &netPath->peerMulticastAddr);
+        netPath->peerMulticastAddr.addr = 0;
+    }
 
     /* Disconnect and close the UDP interfaces */
     netHandlerShutdown(&netPath->eventHandler);
@@ -189,6 +198,7 @@ static ssize_t netRecv(octet_t *buf, timeInternal_t *time, packetHandler_t *hand
 
     /* Fetch message from mailbox - return if inbox is empty */
     if(sys_arch_mbox_tryfetch(&handler->inbox, &msg) == SYS_MBOX_EMPTY) {
+        DBGV("NetRecv: Empty Mailbox!!!\n");
         return 0;
     }
     packet = (packet_t *)msg;

@@ -85,7 +85,7 @@ static void ptpd_thread(void *args __attribute((unused))) {
         doState(&ptpClock);
 
         // Wait up to 100ms for something to do, then do something anyway.
-        sys_arch_mbox_fetch(&ptpAlert, &msg, 100);
+        sys_arch_mbox_fetch(&ptpAlert, &msg, 0);
     }
 }
 
