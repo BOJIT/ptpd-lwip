@@ -37,10 +37,8 @@ static void netRecvCallback(void *arg, struct udp_pcb *pcb, struct pbuf *p,
     }
 
     /* Cycle the buffer index */
-    if(handler->inboxHead < PBUF_QUEUE_SIZE) {
-        handler->inboxHead++;
-    }
-    else {
+    handler->inboxHead++;
+    if(handler->inboxHead == PBUF_QUEUE_SIZE) {
         handler->inboxHead = 0;
     }
 
@@ -251,7 +249,6 @@ static ssize_t netRecv(octet_t *buf, timeInternal_t *time, packetHandler_t *hand
     return length;
 }
 
-// Problem...
 static ssize_t netSend(const octet_t *buf, int16_t length, timeInternal_t *time,
                         const ip_addr_t *addr, packetHandler_t *handler, sys_sem_t *ptpTxNotify)
 {
@@ -294,10 +291,8 @@ static ssize_t netSend(const octet_t *buf, int16_t length, timeInternal_t *time,
 
     /// @todo potentially replace mailbox buffers with a linked list?
     /* Cycle the buffer index */
-    if(handler->outboxHead < PBUF_QUEUE_SIZE) {
-        handler->outboxHead++;
-    }
-    else {
+    handler->outboxHead++;
+    if(handler->outboxHead == PBUF_QUEUE_SIZE) {
         handler->outboxHead = 0;
     }
 

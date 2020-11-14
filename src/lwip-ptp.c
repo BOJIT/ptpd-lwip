@@ -79,14 +79,12 @@ static void ptpd_thread(void *args __attribute((unused))) {
     #endif
 
     for (;;) {
-        void *msg;
-
         // Process the current state.
         doState(&ptpClock);
 
-        // Wait up to 100ms for something to do, then do something anyway.
-        sys_arch_mbox_fetch(&ptpAlert, &msg, 0);
         DBGV("------------------------------------\n");
+
+        sys_arch_mbox_fetch(&ptpAlert, NULL, 0);
     }
 }
 
