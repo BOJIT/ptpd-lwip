@@ -23,26 +23,25 @@ static void netRecvCallback(void *arg, struct udp_pcb *pcb, struct pbuf *p,
 
     packetHandler_t *handler = (packetHandler_t *)arg;
 
-    static int bufIdx = 0;
-
     /* Back up existing packet and overwrite with new data */
-    packet_t packetTmp = handler->inboxBuf[bufIdx];
-    handler->inboxBuf[bufIdx].pbuf = p;
-    handler->inboxBuf[bufIdx].destAddr.addr = addr->addr;
+    packet_t packetTmp = handler->inboxBuf[handler->inboxHead];
+    handler->inboxBuf[handler->inboxHead].pbuf = p;
+    handler->inboxBuf[handler->inboxHead].destAddr.addr = addr->addr;
 
-    if(sys_mbox_trypost(&handler->inbox, &handler->inboxBuf[bufIdx]) != ERR_OK) {
+    if(sys_mbox_trypost(&handler->inbox, &handler->inboxBuf[handler->inboxHead])
+                                                                        != ERR_OK) {
         ERROR("netRecvEventCallback: queue full - %lu\n", handler);
         pbuf_free(p);
-        handler->inboxBuf[bufIdx] = packetTmp;
+        handler->inboxBuf[handler->inboxHead] = packetTmp;
         return;
     }
 
     /* Cycle the buffer index */
-    if(bufIdx < PBUF_QUEUE_SIZE) {
-        bufIdx++;
+    if(handler->inboxHead < PBUF_QUEUE_SIZE) {
+        handler->inboxHead++;
     }
     else {
-        bufIdx = 0;
+        handler->inboxHead = 0;
     }
 
     /* Alert the PTP thread there is now something to do. */
@@ -280,27 +279,26 @@ static ssize_t netSend(const octet_t *buf, int16_t length, timeInternal_t *time,
         p->tv_nsec = UINT32_MAX;
     }
 
-    /* Add message to outbox */
-    static int bufIdx = 0;
-
     /* Back up existing packet and overwrite with new data */
-    packet_t packetTmp = handler->outboxBuf[bufIdx];
-    handler->outboxBuf[bufIdx].pbuf = p;
-    handler->outboxBuf[bufIdx].destAddr.addr = addr->addr;
+    packet_t packetTmp = handler->outboxBuf[handler->outboxHead];
+    handler->outboxBuf[handler->outboxHead].pbuf = p;
+    handler->outboxBuf[handler->outboxHead].destAddr.addr = addr->addr;
 
-    if(sys_mbox_trypost(&handler->outbox, &handler->outboxBuf[bufIdx]) != ERR_OK) {
+    if(sys_mbox_trypost(&handler->outbox, &handler->outboxBuf[handler->outboxHead])
+                                                                        != ERR_OK) {
         ERROR("netSend: queue full\n");
         pbuf_free(p);
-        handler->outboxBuf[bufIdx] = packetTmp;
+        handler->outboxBuf[handler->outboxHead] = packetTmp;
         return 0;
     }
 
+    /// @todo potentially replace mailbox buffers with a linked list?
     /* Cycle the buffer index */
-    if(bufIdx < PBUF_QUEUE_SIZE) {
-        bufIdx++;
+    if(handler->outboxHead < PBUF_QUEUE_SIZE) {
+        handler->outboxHead++;
     }
     else {
-        bufIdx = 0;
+        handler->outboxHead = 0;
     }
 
     /* Notify Transmit Handler that there is a packet to process */

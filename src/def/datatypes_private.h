@@ -417,8 +417,10 @@ typedef struct {
 typedef struct {
     struct udp_pcb *pcb;
     packet_t inboxBuf[PBUF_QUEUE_SIZE];
+    u8_t inboxHead;
     sys_mbox_t inbox;
     packet_t outboxBuf[PBUF_QUEUE_SIZE];
+    u8_t outboxHead;
     sys_mbox_t outbox;
 } packetHandler_t;
 

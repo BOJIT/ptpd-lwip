@@ -86,6 +86,7 @@ static void ptpd_thread(void *args __attribute((unused))) {
 
         // Wait up to 100ms for something to do, then do something anyway.
         sys_arch_mbox_fetch(&ptpAlert, &msg, 0);
+        DBGV("------------------------------------\n");
     }
 }
 
