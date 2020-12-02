@@ -43,6 +43,8 @@ Prerequisites:
 
 [ ] Document pbuf interface for timestamps
 
-[ ] Add OS-specific timer implementation and opts file.
+[x] Add OS-specific timer implementation and opts file.
 
 [ ] Create document summarising all components required in the driver file.
+
+[ ] see if there is a good way to abstract the actual timer output - this is very hardware-specific.

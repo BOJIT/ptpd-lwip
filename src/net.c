@@ -217,7 +217,9 @@ static ssize_t netRecv(octet_t *buf, timeInternal_t *time, packetHandler_t *hand
 
     /* Copy across timestamp if required. */
     if (time != NULL) {
+        DBGV("netRecv: getting timestamp: \n");
         #if LWIP_PTP /** @todo this is potentially redundant */
+            // DBGV("ptp: s - %lu\n", p->tv_sec);
             time->seconds = p->tv_sec;
             time->nanoseconds = p->tv_nsec;
         #else
@@ -254,6 +256,8 @@ static ssize_t netSend(const octet_t *buf, int16_t length, timeInternal_t *time,
 {
     err_t result;
     struct pbuf *p;
+
+    DBGV("netSend: something\n");
 
     /* Allocate the tx pbuf based on the current size. */
     p = pbuf_alloc(PBUF_TRANSPORT, length, PBUF_RAM);
