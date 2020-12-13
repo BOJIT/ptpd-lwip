@@ -433,7 +433,7 @@ typedef struct {
     ip_addr_t multicastAddr;
     ip_addr_t peerMulticastAddr;
 
-    sys_sem_t *ptpTxNotify;
+    sys_sem_t ptpTxNotify;
 
     packetHandler_t eventHandler;
     packetHandler_t generalHandler;

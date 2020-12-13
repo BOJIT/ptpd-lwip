@@ -1347,7 +1347,7 @@ static void issueDelayReq(ptpClock_t *ptpClock)
 
     /// @todo network code!
     if (!netSendEvent(&ptpClock->netPath, ptpClock->msgObuf, DELAY_REQ_LENGTH, &internalTime)) {
-        ERROR("issueDelayReq: can't sent\n");
+        ERROR("issueDelayReq: can't send\n");
         toState(ptpClock, PTP_FAULTY);
     }
     else {

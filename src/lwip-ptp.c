@@ -117,7 +117,7 @@ void lwipPtpInit(u8_t priority)
     }
 
     /* Create PTP Tx Timestamp Semaphore */
-    if(sys_sem_new(ptpClock.netPath.ptpTxNotify, 0) != ERR_OK) {
+    if(sys_sem_new(&ptpClock.netPath.ptpTxNotify, 0) != ERR_OK) {
         DEBUG_MESSAGE(DEBUG_TYPE_INFO, "Could not create tx timestamp smphr!");
         return;
     }
@@ -138,7 +138,7 @@ void lwipPtpInit(u8_t priority)
  */
 void lwipPtpTxNotify(void)
 {
-    sys_sem_signal(ptpClock.netPath.ptpTxNotify);
+    sys_sem_signal(&ptpClock.netPath.ptpTxNotify);
 }
 
 /*----------------------------------------------------------------------------*/

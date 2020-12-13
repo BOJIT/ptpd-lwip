@@ -55,10 +55,14 @@ static void netSendCallback(void *arg)
     void* msg;
     packet_t *packet;
 
+    DBGVV("netSendEventCallback: %lu\n", &handler->inbox);
+
     /* Fetch message from mailbox - return if inbox is empty */
-    if(sys_arch_mbox_tryfetch(&handler->inbox, &msg) == SYS_MBOX_EMPTY) {
+    if(sys_arch_mbox_tryfetch(&handler->outbox, &msg) == SYS_MBOX_EMPTY) {
         return;
     }
+
+    DBGVV("netSendEventCallback: queue\n");
 
     packet = (packet_t *)msg;
 
@@ -307,14 +311,14 @@ static ssize_t netSend(const octet_t *buf, int16_t length, timeInternal_t *time,
     /* Write timestamp to PTP internal time if required (wait for tx) */
     if (time != NULL) {
         #if LWIP_PTP /** @todo!!! remove this macro */
-            sys_arch_sem_wait(ptpTxNotify, 100);
+            sys_arch_sem_wait(ptpTxNotify, 0);
 
             if((p->tv_sec & p->tv_nsec) != UINT32_MAX) {
             time->seconds = p->tv_sec;
             time->nanoseconds = p->tv_nsec;
             }
             else {
-                DBGVV("Timestamp Corrupted!");
+                DBGVV("Timestamp Corrupted!\n");
                 return 0;
             }
         #else
@@ -346,7 +350,7 @@ ssize_t netSendEvent(netPath_t *netPath, const octet_t *buf,
                                         int16_t length, timeInternal_t *time)
 {
     return netSend(buf, length, time, &netPath->multicastAddr,
-                                &netPath->eventHandler, netPath->ptpTxNotify);
+                                &netPath->eventHandler, &netPath->ptpTxNotify);
 }
 
 /* Send Network Packet on General Port */
@@ -361,7 +365,7 @@ ssize_t netSendPeerEvent(netPath_t *netPath, const octet_t *buf,
                                         int16_t length, timeInternal_t *time)
 {
     return netSend(buf, length, time, &netPath->peerMulticastAddr,
-                                &netPath->eventHandler, netPath->ptpTxNotify);
+                                &netPath->eventHandler, &netPath->ptpTxNotify);
 }
 
 /* Send Network Packet on Peer General Port */
