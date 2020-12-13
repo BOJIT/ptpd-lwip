@@ -229,6 +229,7 @@ static ssize_t netRecv(octet_t *buf, timeInternal_t *time, packetHandler_t *hand
         #else
             getTime(time);
         #endif
+        DBGV("netRecv: %d sec %d nsec\n", time->seconds, time->nanoseconds);
     }
 
     /* Get the length of the buffer to copy. */
