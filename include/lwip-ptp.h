@@ -39,13 +39,6 @@ void LWIP_PTP_GET_TIME(timestamp_t*);
 void LWIP_PTP_SET_TIME(const timestamp_t*);
 
 /**
- * @brief Coarse update the system time (single step).
- * @param timestamp timestamp containing offset (absolute value)
- * @param sign determines whether to add/subtract the timestamp to system time.
- */
-void LWIP_PTP_UPDATE_COARSE(const timestamp_t*, s8_t);
-
-/**
  * @brief Fine update the system time (accumulator).
  * @param adj adjustment addend (for fine adjustment of system clock frequency).
  */

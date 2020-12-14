@@ -28,27 +28,6 @@ void setTime(const timeInternal_t *time)
     DBG("resetting system clock to %d sec %d nsec\n", time->seconds, time->nanoseconds);
 }
 
-/* modify the PTP system time by adding the value in timestamp */
-void updateTime(const timeInternal_t *time)
-{
-    timestamp_t offset;
-    s8_t sign = 0;  // non-zero value indicates a negative offset
-
-    DBGV("updateTime: %d sec %d nsec\n", time->seconds, time->nanoseconds);
-
-    /* assuming 2 negative signs don't correspond to a positive offset! */
-    if((time->seconds < 0) || (time->nanoseconds < 0)) {
-        sign = 1;
-    }
-
-    offset.secondsField.lsb = abs(time->seconds);
-    offset.nanosecondsField = abs(time->nanoseconds);
-
-    /* Coarse update method */
-    LWIP_PTP_UPDATE_COARSE(&offset, sign);
-    DBGV("updateTime: updated\n");
-}
-
 /* modify the PTP system time by fine adjustment (using an accumulator) */
 bool adjFreq(s32_t adj)
 {

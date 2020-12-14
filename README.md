@@ -9,6 +9,8 @@ Since then, the ptpd project structure has changed significantly. The newer vers
 
 Note that the port interface layer is designed to be rollover-safe, but PTPd itself is not yet... ...something to worry about in 2038!
 
+Note that this PTP implementation only uses a fine update method. The coarse update method is not that different to resetting the system time with every sync, so it has been removed from the source.
+
 Prerequisites:
 
 - lwIP is installed and has an architecture port that supports RTOS features such as tasks, mailboxes, queues, etc.
@@ -47,6 +49,6 @@ Prerequisites:
 
 [x] Add OS-specific timer implementation and opts file.
 
-[ ] Create document summarising all components required in the driver file.
+[x] Create document summarising all components required in the driver file.
 
 [ ] see if there is a good way to abstract the actual timer output - this is very hardware-specific.

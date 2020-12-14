@@ -38,15 +38,6 @@
     #endif /* !defined LWIP_PTP_SET_TIME || defined __DOXYGEN__ */
 
     /**
-     * LWIP_PTP_UPDATE_COARSE
-     * @brief function used to update the system time by a time interval in a
-     * single step (coarse correction mode)
-     */
-    #if !defined LWIP_PTP_UPDATE_COARSE || defined __DOXYGEN__
-        #error "No 'LWIP_PTP_UPDATE_COARSE' function configured in lwipopts.h!"
-    #endif /* !defined LWIP_PTP_UPDATE_COARSE || defined __DOXYGEN__ */
-
-    /**
      * LWIP_PTP_UPDATE_FINE
      * @brief function used to update the system time by adjusting the frequency
      * of the system clock.
@@ -390,10 +381,10 @@ enum
 };
 
 /*--------------------------------- Debugging --------------------------------*/
-#define PTPD_DBG
-#define PTPD_DBGVV
-#define PTPD_DBGV
-#define PTPD_ERR
+// #define PTPD_DBG
+// #define PTPD_DBGVV
+// #define PTPD_DBGV
+// #define PTPD_ERR
 
 #ifdef PTPD_DBG
 #define PTPD_ERR
