@@ -184,7 +184,7 @@
 
 #define pow2ms(a) (((a)>0) ? (1000 << (a)) : (1000 >>(-(a))))
 
-#define ADJ_FREQ_MAX  5120000
+#define ADJ_FREQ_MAX  32768000   /* Value is from ntp_adjtime in Linux kernel */
 
 /* UDP/IPv4 dependent */
 

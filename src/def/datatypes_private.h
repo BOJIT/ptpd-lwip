@@ -17,9 +17,6 @@
 #include "opt.h"
 #include "datatypes_public.h"
 
-/* Include FreeRTOS-Debug library headers */
-#include <FreeRTOS-Debug.h> // GET RID OF LATER!!!
-
 /* -------------------------- Constructor Datatypes ------------------------- */
 
 /**

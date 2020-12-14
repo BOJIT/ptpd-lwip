@@ -30,9 +30,8 @@ sys_mbox_t ptpAlert;
 
 
 
-static void ptpd_thread(void *args __attribute((unused))) {
-
-    DEBUG_MESSAGE(DEBUG_TYPE_INFO, "PTPd thread started...");
+static void ptpd_thread(void *args __attribute((unused)))
+{
 
     // Initialize run-time options to default values.
     rtOpts.announceInterval = DEFAULT_ANNOUNCE_INTERVAL;
@@ -98,7 +97,7 @@ void lwipPtpTimerExpired(u32_t idx)
 {
     UNUSED(idx);
     if(sys_mbox_trypost(&ptpAlert, NULL) != ERR_OK) {
-        DBGVV("Mailbox Full!");
+        DBGVV("Mailbox Full!\n");
     }
 }
 
@@ -108,17 +107,17 @@ void lwipPtpTimerExpired(u32_t idx)
  */
 void lwipPtpInit(u8_t priority)
 {
-    DEBUG_MESSAGE(DEBUG_TYPE_INFO, "PTPd initialising...");
+    DBGVV("PTPd initialising...\n");
 
     // Create the alert queue mailbox.
     if(sys_mbox_new(&ptpAlert, 16) != ERR_OK) {
-        DEBUG_MESSAGE(DEBUG_TYPE_INFO, "Could not create alert queue");
+        DBGVV("Could not create alert queue");
         return;
     }
 
     /* Create PTP Tx Timestamp Semaphore */
     if(sys_sem_new(&ptpClock.netPath.ptpTxNotify, 0) != ERR_OK) {
-        DEBUG_MESSAGE(DEBUG_TYPE_INFO, "Could not create tx timestamp smphr!");
+        DBGVV("Could not create tx timestamp smphr!");
         return;
     }
 
