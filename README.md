@@ -2,7 +2,7 @@
 PTPd port for use with lwIP on embedded devices.
 
 ## IMPORTANT NOTICE!!!
-This codebase is not very stable! I am working on a ptpd C++ re-write that should be more stable. However for now, consider this repository more of a code-reference than a working project.
+**This codebase is not very stable! I am working on a ptpd C++ re-write that should be more stable. However for now, consider this repository more of a code-reference than a working project.**
 
 This port is based on PTPv2 release **v2rc1**, January 2010. In particular, the code is based on ST Microelectronics' [AN3411](http://www.bdtic.com/download/ST/AN3411.pdf) and the work of [mpthompson](https://github.com/mpthompson/stm32_f4_ptpd).
 
